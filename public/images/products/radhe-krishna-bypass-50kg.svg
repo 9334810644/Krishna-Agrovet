@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 680" width="100%" height="100%">
+  <defs>
+    <!-- Shadow & 3D Lighting -->
+    <filter id="bagShadow" x="-10%" y="-5%" width="125%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#1c1917" flood-opacity="0.22" />
+    </filter>
+    <linearGradient id="bag3dShade" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.32" />
+      <stop offset="12%" stop-color="#fff" stop-opacity="0.18" />
+      <stop offset="48%" stop-color="#fff" stop-opacity="0" />
+      <stop offset="85%" stop-color="#000" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#000" stop-opacity="0.35" />
+    </linearGradient>
+
+    <!-- Red Sack Gradient -->
+    <linearGradient id="redSackGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C92228" />
+      <stop offset="45%" stop-color="#B82025" />
+      <stop offset="100%" stop-color="#8F1519" />
+    </linearGradient>
+
+    <!-- Yellow Accents Gradient -->
+    <linearGradient id="yellowAccentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFDD33" />
+      <stop offset="50%" stop-color="#F5C900" />
+      <stop offset="100%" stop-color="#D4AA00" />
+    </linearGradient>
+
+    <!-- Polypropylene Woven Texture Pattern -->
+    <pattern id="wovenPattern" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="3" fill="#ffffff" fill-opacity="0.04" />
+      <rect y="3" width="6" height="3" fill="#000000" fill-opacity="0.05" />
+      <line x1="3" y1="0" x2="3" y2="6" stroke="#ffffff" stroke-width="0.7" stroke-opacity="0.06" />
+    </pattern>
+  </defs>
+
+  <!-- Shadow Floor Ellipse -->
+  <ellipse cx="250" cy="645" rx="180" ry="22" fill="#1c1917" opacity="0.25" filter="blur(6px)" />
+
+  <!-- SACK BODY GROUP -->
+  <g filter="url(#bagShadow)">
+    <!-- Main Sack Outline with natural bulk/creases -->
+    <path d="M 115 55 
+             C 140 50, 360 50, 385 55 
+             C 410 75, 428 170, 432 300 
+             C 436 430, 422 550, 400 625 
+             C 380 635, 120 635, 100 625 
+             C 78 550, 64 430, 68 300 
+             C 72 170, 90 75, 115 55 Z" 
+          fill="url(#redSackGrad)" />
+
+    <!-- Polypropylene texture overlay -->
+    <path d="M 115 55 C 140 50, 360 50, 385 55 C 410 75, 428 170, 432 300 C 436 430, 422 550, 400 625 C 380 635, 120 635, 100 625 C 78 550, 64 430, 68 300 C 72 170, 90 75, 115 55 Z" 
+          fill="url(#wovenPattern)" />
+
+    <!-- 3D Cylindrical lighting overlay -->
+    <path d="M 115 55 C 140 50, 360 50, 385 55 C 410 75, 428 170, 432 300 C 436 430, 422 550, 400 625 C 380 635, 120 635, 100 625 C 78 550, 64 430, 68 300 C 72 170, 90 75, 115 55 Z" 
+          fill="url(#bag3dShade)" />
+
+    <!-- Top Fold & Stitching Strip -->
+    <rect x="105" y="44" width="290" height="18" rx="4" fill="#E6BA00" stroke="#B88A00" stroke-width="1.5" />
+    <!-- White thread stitch lines -->
+    <line x1="112" y1="53" x2="388" y2="53" stroke="#FFFFFF" stroke-width="2.5" stroke-dasharray="6,4" />
+
+    <!-- BRAND TOP BANNER: KRISHNA AGROVET -->
+    <rect x="85" y="85" width="330" height="34" rx="6" fill="#1A1915" />
+    <text x="250" y="108" font-family="'Outfit', 'Inter', sans-serif" font-size="16" font-weight="800" fill="#F5C900" letter-spacing="3" text-anchor="middle">
+      KRISHNA AGROVET
+    </text>
+
+    <!-- UPPER ARCHED ACCENT: BRAND YELLOW -->
+    <path d="M 80 135 Q 250 160 420 135 L 424 285 Q 250 315 76 285 Z" fill="url(#yellowAccentGrad)" />
+
+    <!-- BRAND TITLE IN HINDI & ENGLISH -->
+    <text x="250" y="195" font-family="'Outfit', sans-serif" font-size="34" font-weight="900" fill="#B82025" text-anchor="middle" letter-spacing="1">
+      राधे कृष्णा
+    </text>
+    <text x="250" y="232" font-family="'Outfit', sans-serif" font-size="22" font-weight="800" fill="#292820" text-anchor="middle" letter-spacing="4">
+      पशु आहार
+    </text>
+    <text x="250" y="258" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#8F1519" text-anchor="middle" letter-spacing="2">
+      RADHE KRISHNA CATTLE FEED
+    </text>
+
+    <!-- CENTRAL PRODUCT BADGE: BYPASS PROTEIN (बाईपास) -->
+    <!-- Red contrast pill -->
+    <rect x="110" y="295" width="280" height="98" rx="14" fill="#B82025" stroke="#F5C900" stroke-width="3" />
+    <text x="250" y="340" font-family="'Outfit', sans-serif" font-size="36" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="2">
+      बाईपास
+    </text>
+    <text x="250" y="375" font-family="'Outfit', sans-serif" font-size="18" font-weight="800" fill="#F5C900" text-anchor="middle" letter-spacing="3">
+      BYPASS PROTEIN
+    </text>
+
+    <!-- COW & CALF GRAPHIC SILHOUETTE EMBLEM -->
+    <g transform="translate(195, 410) scale(0.75)" fill="#F5C900" opacity="0.95">
+      <!-- Stylized dairy cow icon -->
+      <path d="M 20 50 C 25 35, 45 25, 70 25 C 95 25, 115 35, 125 50 C 135 60, 140 85, 130 100 C 120 110, 100 115, 70 115 C 40 115, 20 110, 10 100 C 0 85, 10 60, 20 50 Z" />
+      <circle cx="50" cy="55" r="5" fill="#292820" />
+      <path d="M 40 25 C 35 15, 25 10, 20 15 C 18 25, 30 30, 40 32 Z" />
+      <path d="M 100 25 C 105 15, 115 10, 120 15 C 122 25, 110 30, 100 32 Z" />
+    </g>
+
+    <!-- KEY BENEFITS ROW IN SACK -->
+    <text x="250" y="525" font-family="'Inter', sans-serif" font-size="13" font-weight="800" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">
+      दूध और फैट (FAT) बढ़ाने में सहायक
+    </text>
+    <text x="250" y="546" font-family="'Inter', sans-serif" font-size="11" font-weight="600" fill="#FEDD38" text-anchor="middle" letter-spacing="1">
+      HIGH ENERGY • RUMEN PROTECTED
+    </text>
+
+    <!-- BOTTOM WEIGHT BANNER: 50 KG -->
+    <rect x="92" y="565" width="316" height="50" rx="8" fill="#F5C900" />
+    <text x="250" y="598" font-family="'Outfit', sans-serif" font-size="24" font-weight="900" fill="#292820" text-anchor="middle" letter-spacing="2">
+      NET WEIGHT: 50 KG
+    </text>
+    <text x="250" y="612" font-family="'Inter', sans-serif" font-size="9" font-weight="700" fill="#8F1519" text-anchor="middle" letter-spacing="1.5">
+      50 किग्रा • शुद्ध वजन
+    </text>
+  </g>
+</svg>

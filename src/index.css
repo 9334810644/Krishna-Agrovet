@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@theme {
+  --color-krishna-red: #B82025;
+  --color-krishna-red-dark: #8F171B;
+  --color-krishna-red-light: #D42E34;
+  --color-brand-yellow: #F5C900;
+  --color-brand-yellow-dark: #C9A400;
+  --color-brand-yellow-light: #FEDD38;
+  --color-feed-turquoise: #079DA5;
+  --color-feed-turquoise-dark: #057B82;
+  --color-feed-turquoise-light: #12B9C2;
+  --color-warm-cream: #FFF9EF;
+  --color-warm-cream-dark: #F4EAD4;
+  --color-warm-cream-surface: #FCF6EC;
+  --color-deep-charcoal: #292820;
+  --color-charcoal-muted: #575549;
+
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-brand: 'Rozha One', serif;
+  --font-brand-display: 'Yatra One', cursive;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-body);
+    color: #292820;
+    background-color: #FFF9EF;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.03);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Smooth Interactive Utility Classes */
+.card-hover-lift {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px -8px rgba(41, 40, 32, 0.12), 0 8px 16px -6px rgba(41, 40, 32, 0.08);
+}
+
+.btn-smooth {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-smooth:hover {
+  transform: translateY(-1.5px);
+}
+
+.btn-smooth:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+/* Shimmer animation for skeletons */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(244, 234, 212, 0.6) 0%, rgba(255, 249, 239, 0.9) 50%, rgba(244, 234, 212, 0.6) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite ease-in-out;
+}
+
+/* Smooth modal & popup entrance */
+.modal-enter {
+  animation: modalEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Print styling for receipts */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* Custom modern subtle scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #fbf7ee;
+}
+::-webkit-scrollbar-thumb {
+  background: #e2d9c4;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c8bd9f;
+}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Rounded brand container -->
+  <rect width="64" height="64" rx="16" fill="#B82025"/>
+  <!-- Gold accent border -->
+  <rect x="2" y="2" width="60" height="60" rx="14" stroke="#F5C900" stroke-width="2.5" stroke-dasharray="4 2"/>
+  
+  <!-- Stylized RK Emblem & Feed Grain -->
+  <circle cx="32" cy="32" r="21" fill="#880E14" stroke="#F5C900" stroke-width="1.5"/>
+  <text x="32" y="37" font-family="'Outfit', sans-serif, system-ui" font-weight="900" font-size="20" fill="#F5C900" text-anchor="middle" letter-spacing="0.5">RK</text>
+  
+  <!-- Subtle wheat/grain ear arcs at bottom -->
+  <path d="M22 47 C28 50, 36 50, 42 47" stroke="#F5C900" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -40,6 +40,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [items]);
 
+  // Clean up any deleted product from the cart
+  useEffect(() => {
+    const handleProductsChange = (e: any) => {
+      const deletedId = e?.detail?.id || e?.detail?.data?.id;
+      if (e?.detail?.action === 'delete' && deletedId) {
+        setItems(prev => prev.filter(item => item.product.id !== deletedId));
+      }
+    };
+    window.addEventListener('kav_products_changed', handleProductsChange);
+    return () => window.removeEventListener('kav_products_changed', handleProductsChange);
+  }, []);
+
   const addItem = (product: Product, quantity: number = 1): { success: boolean; message: string } => {
     if (quantity <= 0) return { success: false, message: 'Quantity must be at least 1' };
     if (product.available_stock <= 0) {

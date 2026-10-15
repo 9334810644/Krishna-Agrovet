@@ -374,8 +374,8 @@ export const AdminOrdersPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Delivery Service:</span>
-                      <span className={selectedOrder.delivery_fee === 0 ? 'text-emerald-700' : 'text-deep-charcoal'}>
-                        {selectedOrder.delivery_fee === 0 ? 'FREE Doorstep Farm Delivery' : 'Doorstep Farm Delivery'}
+                      <span className="text-deep-charcoal">
+                        Doorstep Farm Delivery
                       </span>
                     </div>
                     <div className="flex justify-between text-xs sm:text-sm font-black text-deep-charcoal pt-1.5 border-t border-warm-cream-dark">

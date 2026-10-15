@@ -1,13 +1,14 @@
 import React from 'react';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { MapPin, Phone, MessageCircle, Truck, Clock, AlertCircle } from 'lucide-react';
+import { MapPin, Phone, MessageCircle, Truck, Clock, AlertCircle, Building2 } from 'lucide-react';
 import { normalizeWhatsAppNumber } from '../../lib/whatsapp';
 
 export const DeliveryCoverage: React.FC = () => {
   const { settings } = useStoreSettings();
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const cleanWhatsApp = normalizeWhatsAppNumber(settings.owner_whatsapp);
+  const officeAddress = settings.office_address || 'Khasra No. 354/ 1, Patanwa, Industrial area, Ramnagar, Chandauli, ( U. P )';
 
   return (
     <section id="delivery" className="py-14 sm:py-20 bg-warm-cream border-b border-warm-cream-dark">
@@ -29,7 +30,7 @@ export const DeliveryCoverage: React.FC = () => {
                 {t('deliveryPara')}
               </p>
 
-              <div className="bg-warm-cream p-4 rounded-2xl border border-warm-cream-dark space-y-2">
+              <div className="bg-warm-cream p-4 rounded-2xl border border-warm-cream-dark space-y-3">
                 <div className="flex items-start gap-2.5">
                   <MapPin className="w-5 h-5 text-krishna-red shrink-0 mt-0.5" />
                   <div>
@@ -38,6 +39,18 @@ export const DeliveryCoverage: React.FC = () => {
                     </span>
                     <span className="font-bold text-deep-charcoal text-sm sm:text-base">
                       {settings.delivery_areas}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5 pt-2 border-t border-warm-cream-dark">
+                  <Building2 className="w-5 h-5 text-krishna-red shrink-0 mt-0.5" />
+                  <div>
+                    <span className="block text-xs font-black text-charcoal-muted uppercase tracking-wider">
+                      {lang === 'hi' ? 'कार्यालय का पता (Office Address)' : 'Registered Office Address'}
+                    </span>
+                    <span className="font-semibold text-deep-charcoal text-xs sm:text-sm">
+                      {officeAddress}
                     </span>
                   </div>
                 </div>
@@ -50,9 +63,7 @@ export const DeliveryCoverage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2.5 text-xs sm:text-sm text-deep-charcoal font-bold">
                   <AlertCircle className="w-4 h-4 text-krishna-red shrink-0" />
-                  <span>
-                    {t('deliveryFreeThreshold').replace('{bags}', String(settings.free_delivery_threshold_bags))}
-                  </span>
+                  <span>{t('deliveryFreeThreshold')}</span>
                 </div>
               </div>
             </div>
@@ -83,7 +94,9 @@ export const DeliveryCoverage: React.FC = () => {
 
                 <a
                   href={`https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(
-                    `Namaste ${settings.business_name}, I want urgent cattle feed delivery to my village.`
+                    lang === 'hi'
+                      ? `नमस्ते ${settings.business_name}, मुझे अपने गांव में तुरंत पशु आहार की डिलीवरी चाहिए।`
+                      : `Namaste ${settings.business_name}, I want urgent cattle feed delivery to my village.`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"

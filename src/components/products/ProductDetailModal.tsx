@@ -25,7 +25,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onClose 
 }) => {
   const { addItem, items } = useCart();
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const { settings } = useStoreSettings();
   const { isAdmin } = useAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -95,7 +95,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
   const cleanWhatsAppNumber = normalizeWhatsAppNumber(settings.owner_whatsapp);
   const productWhatsAppUrl = `https://wa.me/${cleanWhatsAppNumber}?text=${encodeURIComponent(
-    `Namaste ${settings.business_name}, I want to ask about ${product.name} (50kg bag) availability and doorstep farm delivery.`
+    lang === 'hi'
+      ? `नमस्ते ${settings.business_name}, मुझे ${product.name} (50 किग्रा बोरी) की उपलब्धता और फार्म डिलीवरी के बारे में जानना है।`
+      : `Namaste ${settings.business_name}, I want to ask about ${product.name} (50kg bag) availability and doorstep farm delivery.`
   )}`;
 
   const relatedProducts = allProducts.filter(p => p.id !== product.id && p.is_active).slice(0, 3);
@@ -165,6 +167,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <span>{product.bag_weight_kg || 50} kg Standard Bag</span>
             </span>
           </div>
+
+          {/* Packaging Overlay Pill across bottom of image */}
+          {product.packaging_info && (
+            <div className="absolute bottom-3 left-4 right-4 bg-stone-900/85 backdrop-blur-xs text-white text-xs sm:text-sm font-black py-1.5 px-3 rounded-xl text-center shadow-md border border-white/20">
+              {product.packaging_info}
+            </div>
+          )}
 
           {/* Admin Change Photo Button in Modal */}
           {isAdmin && (
@@ -247,14 +256,39 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Description */}
-          <div className="space-y-2">
+          {/* Description & Key Features - Checklist Style from authentic product packaging */}
+          <div className="space-y-3">
             <h3 className="text-xs font-black uppercase tracking-wider text-charcoal-muted">
-              Description & Packaging Info
+              Description & Key Features
             </h3>
-            <p className="text-sm text-deep-charcoal/90 leading-relaxed bg-warm-cream p-4 rounded-2xl border border-warm-cream-dark">
-              {product.description}
-            </p>
+            
+            {product.features && product.features.length > 0 ? (
+              <div className="bg-[#FAF8F5] p-5 sm:p-6 rounded-2xl border border-warm-cream-dark space-y-3.5 shadow-2xs">
+                {product.features.map((feature, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-stone-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    </div>
+                    <p className="text-xs sm:text-sm text-deep-charcoal leading-relaxed font-medium">
+                      {feature}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-[#FAF8F5] p-5 sm:p-6 rounded-2xl border border-warm-cream-dark space-y-3.5 shadow-2xs">
+                {product.description.split('\n\n').filter(Boolean).map((para, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-stone-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    </div>
+                    <p className="text-xs sm:text-sm text-deep-charcoal leading-relaxed font-medium">
+                      {para.trim()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Verified Nutritional Specs */}

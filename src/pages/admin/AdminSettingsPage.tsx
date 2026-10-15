@@ -13,6 +13,7 @@ export const AdminSettingsPage: React.FC = () => {
     owner_phone: settings.owner_phone,
     support_email: settings.support_email,
     delivery_areas: settings.delivery_areas,
+    office_address: settings.office_address || 'Khasra No. 354/ 1, Patanwa, Industrial area, Ramnagar, Chandauli, ( U. P )',
     min_order_bags: settings.min_order_bags || 1,
     delivery_fee_per_bag: settings.delivery_fee_per_bag || 30,
     free_delivery_threshold_bags: settings.free_delivery_threshold_bags || 5,
@@ -319,7 +320,7 @@ export const AdminSettingsPage: React.FC = () => {
               <input
                 type="text"
                 required
-                placeholder="919876543210"
+                placeholder="919470847471"
                 value={formData.owner_whatsapp}
                 onChange={(e) => setFormData({ ...formData, owner_whatsapp: e.target.value })}
                 className="w-full px-3.5 py-2.5 rounded-xl border-2 border-warm-cream-dark bg-warm-cream/50 text-xs font-mono font-bold focus:ring-1 focus:ring-krishna-red text-deep-charcoal"
@@ -346,6 +347,17 @@ export const AdminSettingsPage: React.FC = () => {
                 className="w-full px-3.5 py-2.5 rounded-xl border-2 border-warm-cream-dark bg-warm-cream/50 text-xs focus:ring-1 focus:ring-krishna-red text-deep-charcoal"
               />
             </div>
+
+            <div className="space-y-1 sm:col-span-2">
+              <label className="font-bold text-deep-charcoal">Registered Office Address</label>
+              <textarea
+                rows={2}
+                value={formData.office_address}
+                onChange={(e) => setFormData({ ...formData, office_address: e.target.value })}
+                className="w-full px-3.5 py-2.5 rounded-xl border-2 border-warm-cream-dark bg-warm-cream/50 text-xs focus:ring-1 focus:ring-krishna-red text-deep-charcoal"
+                placeholder="Khasra No. 354/ 1, Patanwa, Industrial area, Ramnagar, Chandauli, ( U. P )"
+              />
+            </div>
           </div>
         </div>
 
@@ -368,7 +380,7 @@ export const AdminSettingsPage: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <label className="font-bold text-deep-charcoal">Free Delivery Threshold (bags) *</label>
+              <label className="font-bold text-deep-charcoal">Delivery Route Threshold (bags) *</label>
               <input
                 type="number"
                 min="1"

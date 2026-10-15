@@ -58,6 +58,8 @@ export interface Product {
     [key: string]: string | undefined;
   };
   feeding_guide?: string;
+  features?: string[];
+  packaging_info?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -134,6 +136,7 @@ export interface StoreSettings {
   free_delivery_threshold_bags: number;
   notice_banner_text: string;
   is_store_open: boolean;
+  office_address?: string;
   logo_url?: string;
   hero_banner_url?: string;
 }

@@ -12,7 +12,7 @@ import { compressDeviceImage } from '../lib/imageCompression';
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const { items, totalBags, totalWeightKg, deliveryFee, clearCart } = useCart();
+  const { items, totalBags, totalWeightKg, clearCart } = useCart();
   const { lang, t } = useLanguage();
 
   const [formData, setFormData] = useState<CheckoutCustomerData>({
@@ -511,8 +511,8 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>{t('deliveryCharges')}:</span>
-                    <span className={deliveryFee === 0 ? 'text-emerald-700 font-black' : 'text-deep-charcoal font-black'}>
-                      {deliveryFee === 0 ? t('freeText') : 'Doorstep Farm Delivery'}
+                    <span className="text-deep-charcoal font-black">
+                      Doorstep Farm Delivery
                     </span>
                   </div>
 

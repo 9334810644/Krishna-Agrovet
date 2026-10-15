@@ -1,11 +1,13 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { MessageCircle } from 'lucide-react';
 import { normalizeWhatsAppNumber } from '../../lib/whatsapp';
 
 export const FloatingWhatsAppButton: React.FC = () => {
   const { settings } = useStoreSettings();
+  const { lang } = useLanguage();
   const location = useLocation();
 
   if (location.pathname.startsWith('/admin')) {
@@ -14,7 +16,9 @@ export const FloatingWhatsAppButton: React.FC = () => {
 
   const cleanNumber = normalizeWhatsAppNumber(settings.owner_whatsapp);
   const url = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(
-    `Namaste ${settings.business_name}, I want to order Radhe Krishna cattle feed bags (Bypass Protein / Ekstrapro) for my dairy farm.`
+    lang === 'hi'
+      ? `नमस्ते ${settings.business_name}, मुझे अपनी डेयरी फार्म के लिए राधे कृष्णा पशु आहार (बाईपास प्रोटीन / एक्स्ट्राप्रो) की बोरियां ऑर्डर करनी हैं।`
+      : `Namaste ${settings.business_name}, I want to order Radhe Krishna cattle feed bags (Bypass Protein / Ekstrapro) for my dairy farm.`
   )}`;
 
   return (

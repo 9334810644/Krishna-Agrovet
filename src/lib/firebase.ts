@@ -126,6 +126,7 @@ export const dataService = {
       try {
         const docRef = doc(db, 'products', id);
         await deleteDoc(docRef);
+        LocalStoreManager.deleteProduct(id);
         return true;
       } catch (err) {
         console.error('Firestore deleteProduct error:', err);

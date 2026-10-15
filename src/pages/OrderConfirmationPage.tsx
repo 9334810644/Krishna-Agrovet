@@ -15,7 +15,7 @@ export const OrderConfirmationPage: React.FC = () => {
   const { orderNumber } = useParams<{ orderNumber: string }>();
   const location = useLocation();
   const { settings } = useStoreSettings();
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
 
   const [order, setOrder] = useState<Order | null>(() => {
     return (location.state as any)?.order || null;
@@ -88,8 +88,8 @@ export const OrderConfirmationPage: React.FC = () => {
     );
   }
 
-  const whatsAppUrl = createWhatsAppOrderUrl(order, settings.owner_whatsapp, settings.business_name);
-  const formattedMessage = formatOrderWhatsAppMessage(order, settings.business_name);
+  const whatsAppUrl = createWhatsAppOrderUrl(order, settings.owner_whatsapp, settings.business_name, lang);
+  const formattedMessage = formatOrderWhatsAppMessage(order, settings.business_name, lang);
 
   const handleCopyMessage = () => {
     navigator.clipboard.writeText(formattedMessage);
@@ -259,8 +259,8 @@ export const OrderConfirmationPage: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span>Farm Doorstep Delivery:</span>
-              <span className={order.delivery_fee === 0 ? 'text-emerald-700 font-black' : 'text-deep-charcoal font-black'}>
-                {order.delivery_fee === 0 ? 'FREE' : 'Doorstep Farm Delivery'}
+              <span className="text-deep-charcoal font-black">
+                Doorstep Farm Delivery
               </span>
             </div>
             <div className="flex justify-between items-center pt-3 border-t border-warm-cream-dark text-sm sm:text-base font-black text-deep-charcoal">

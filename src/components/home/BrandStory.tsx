@@ -1,13 +1,14 @@
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
-import { ShieldCheck, Scale, Truck, MessageCircle } from 'lucide-react';
+import { ShieldCheck, Scale, Truck, MessageCircle, Building2, Factory } from 'lucide-react';
 import { normalizeWhatsAppNumber } from '../../lib/whatsapp';
 
 export const BrandStory: React.FC = () => {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const { settings } = useStoreSettings();
   const cleanWhatsApp = normalizeWhatsAppNumber(settings.owner_whatsapp);
+  const officeAddress = settings.office_address || 'Khasra No. 354/ 1, Patanwa, Industrial area, Ramnagar, Chandauli, ( U. P )';
 
   const verifiedFacts = [
     {
@@ -130,11 +131,40 @@ export const BrandStory: React.FC = () => {
               })}
             </div>
 
+            {/* Registered Office & Mill Information Card */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="p-3.5 rounded-2xl bg-warm-cream/80 border border-warm-cream-dark flex items-start gap-3">
+                <Building2 className="w-5 h-5 text-krishna-red shrink-0 mt-0.5" />
+                <div>
+                  <span className="block text-[11px] font-black text-krishna-red uppercase tracking-wider">
+                    {lang === 'hi' ? 'कार्यालय का पता (Office Address)' : 'Registered Office Address'}
+                  </span>
+                  <p className="text-xs font-semibold text-deep-charcoal leading-relaxed mt-0.5">
+                    {officeAddress}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-warm-cream/80 border border-warm-cream-dark flex items-start gap-3">
+                <Factory className="w-5 h-5 text-feed-turquoise shrink-0 mt-0.5" />
+                <div>
+                  <span className="block text-[11px] font-black text-feed-turquoise-dark uppercase tracking-wider">
+                    {lang === 'hi' ? 'विनिर्माण मिल (Manufacturing Mill)' : 'Manufacturing Mill Facility'}
+                  </span>
+                  <p className="text-xs font-semibold text-deep-charcoal leading-relaxed mt-0.5">
+                    KRISHNA AGROVET • Ichak, Hazaribagh, Jharkhand - 825402
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Direct WhatsApp Call to Action */}
             <div className="pt-2">
               <a
                 href={`https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(
-                  `Namaste Krishna Agrovet, I want to know more about Radhe Krishna Pashu Aahar products.`
+                  lang === 'hi'
+                    ? `नमस्ते कृष्णा एग्रोवेट, मुझे राधे कृष्णा पशु आहार उत्पादों के बारे में अधिक जानकारी चाहिए।`
+                    : `Namaste Krishna Agrovet, I want to know more about Radhe Krishna Pashu Aahar products.`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"

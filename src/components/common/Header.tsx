@@ -25,7 +25,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart }) => {
 
   const cleanWhatsAppNumber = normalizeWhatsAppNumber(settings.owner_whatsapp);
   const quickWhatsAppUrl = `https://wa.me/${cleanWhatsAppNumber}?text=${encodeURIComponent(
-    `Namaste ${settings.business_name}, I want to inquire about Radhe Krishna cattle feed (Bypass Protein / Ekstrapro) bags availability and delivery to my farm.`
+    lang === 'hi'
+      ? `नमस्ते ${settings.business_name}, मुझे अपनी डेयरी फार्म के लिए राधे कृष्णा पशु आहार (बाईपास प्रोटीन / एक्स्ट्राप्रो) की उपलब्धता और डिलीवरी के बारे में जानना है।`
+      : `Namaste ${settings.business_name}, I want to inquire about Radhe Krishna cattle feed (Bypass Protein / Ekstrapro) bags availability and delivery to my farm.`
   )}`;
 
   const navLinks = [
@@ -64,21 +66,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart }) => {
               </div>
             )}
 
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <img
-                src="/images/radhe-krishna-transparent-wordmark.png"
-                alt="राधे कृष्णा पशु आहार"
-                className="h-11 sm:h-13 md:h-15 w-auto object-contain filter drop-shadow-xs group-hover:scale-102 transition-transform shrink-0"
-              />
-              <div className="hidden lg:flex flex-col border-l border-warm-cream-dark pl-2.5 justify-center">
-                <span className="text-[12px] font-black text-deep-charcoal tracking-wide uppercase font-heading leading-tight">
-                  KRISHNA AGROVET
-                </span>
-                <span className="text-[9px] font-bold text-krishna-red uppercase tracking-wider leading-tight">
-                  50 KG SACKS • BYPASS PROTEIN
-                </span>
-              </div>
-            </div>
+            <img
+              src="/images/radhe-krishna-transparent-wordmark.png"
+              alt="राधे कृष्णा पशु आहार"
+              className="h-11 sm:h-13 md:h-15 w-auto object-contain filter drop-shadow-xs group-hover:scale-102 transition-transform shrink-0"
+            />
           </Link>
 
           {/* Desktop Navigation Links */}

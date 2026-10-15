@@ -3,16 +3,18 @@ import { Product, Category, StoreSettings, Order } from '../types';
 export const INITIAL_STORE_SETTINGS: StoreSettings = {
   business_name: 'Radhe Krishna Pashu Aahar',
   tagline: 'भरोसेमंद पशु आहार, आपके पशुधन के लिए • KRISHNA AGROVET',
-  owner_whatsapp: '919876543210',
-  owner_phone: '+91 98765 43210',
-  support_email: 'krishnaagrovet.alwar@gmail.com',
-  delivery_areas: 'Alwar, Bharatpur, Behror, Kotputli, Rewari & Surrounding Gram Panchayats (within 40km)',
+  owner_whatsapp: '919470847471',
+  owner_phone: '+91 94708 47471',
+  support_email: 'krishnaagarovet@gmail.com',
+  delivery_areas: 'Ichak, Hazaribagh, Jharkhand & Chandauli (U.P) & Surrounding Gram Panchayats',
+  office_address: 'Khasra No. 354/ 1, Patanwa, Industrial area, Ramnagar, Chandauli, ( U. P )',
   min_order_bags: 1,
   delivery_fee_per_bag: 30,
   free_delivery_threshold_bags: 5,
-  notice_banner_text: '🌾 Radhe Krishna Pashu Aahar • Krishna Agrovet • Order 5+ bags for FREE delivery across local villages!',
+  notice_banner_text: '🌾 Radhe Krishna Pashu Aahar • Krishna Agrovet • Direct farm delivery across local villages!',
   is_store_open: true,
   logo_url: '/images/krishna-agrovet-logo.png',
+  hero_banner_url: '/images/banners/radhe-krishna-banner.jpg',
 };
 
 export const MOCK_CATEGORIES: Category[] = [
@@ -65,6 +67,47 @@ export const MOCK_CATEGORIES: Category[] = [
 
 export const MOCK_PRODUCTS: Product[] = [
   {
+    id: 'prod-kapila-hipro',
+    category_id: 'cat-2',
+    name: 'Kapila Hi Pro / कापिला हाईप्रो (Premium Range)',
+    brand: 'Kapila Pashu Aahar',
+    sku: 'KPL-HIPRO-50KG-01',
+    bag_weight_kg: 50,
+    price: 1750,
+    mrp: 1850,
+    available_stock: 50,
+    low_stock_threshold: 12,
+    packaging_info: 'Available in 50Kg and 25kg packaging',
+    short_description: 'Available in 50Kg and 25kg packaging. 24% protein & 4% fat balanced nutrition for high milk yield.',
+    description: `Contains an optimal balance of 24% protein and 4% fat, specifically designed to support cattle's nutritional needs. Manufactured in compliance with ISI standards as a BIS Type-I feed, ensuring quality and reliability.
+
+Manufactured under International Organization Standards, ensuring premium quality and reliability.
+
+Made entirely from natural ingredients to promote safe and effective nutrition for your cattle.
+
+Helps cattle reach their full milk-producing potential while maintaining long-term health and vitality.`,
+    features: [
+      "Contains an optimal balance of 24% protein and 4% fat, specifically designed to support cattle's nutritional needs. Manufactured in compliance with ISI standards as a BIS Type-I feed, ensuring quality and reliability.",
+      "Manufactured under International Organization Standards, ensuring premium quality and reliability.",
+      "Made entirely from natural ingredients to promote safe and effective nutrition for your cattle.",
+      "Helps cattle reach their full milk-producing potential while maintaining long-term health and vitality."
+    ],
+    image_url: '/images/products/kapila-hi-pro.png',
+    is_active: true,
+    featured: true,
+    nutritional_info: {
+      crude_protein: '24.0% Optimal Balance',
+      crude_fat: '4.0% min',
+      standard: 'BIS Type-I (ISI Standard)',
+      quality: 'ISO Certified • No Urea',
+      ingredients: '100% Natural Ingredients',
+      packaging: '50 kg & 25 kg bags',
+    },
+    feeding_guide: 'Feed 400g to 500g per liter of milk yield, along with quality green and dry fodder.',
+    created_at: new Date(Date.now() - 35 * 86400000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
     id: 'prod-1',
     category_id: 'cat-1',
     name: 'Radhe Krishna Bypass Protein (बाईपास)',
@@ -75,7 +118,20 @@ export const MOCK_PRODUCTS: Product[] = [
     mrp: 1750,
     available_stock: 65,
     low_stock_threshold: 15,
-    description: 'Radhe Krishna Bypass Protein cattle feed manufactured by Krishna Agrovet. Specially packaged in signature 50 kg red and yellow bags. Contains rumen-protected bypass protein and balanced digestible energy for milking cows and Murrah buffaloes to elevate daily milk quantity, FAT percentage, and SNF.',
+    packaging_info: 'Available in 50Kg standard packaging',
+    description: `Radhe Krishna Bypass Protein cattle feed manufactured by Krishna Agrovet. Specially packaged in signature 50 kg red and yellow bags. Contains rumen-protected bypass protein and balanced digestible energy for milking cows and Murrah buffaloes to elevate daily milk quantity, FAT percentage, and SNF.
+
+Formulated with 22% - 24% crude protein and high rumen-bypass protein fraction for maximum amino acid absorption.
+
+Manufactured under strict quality standards ensuring 100% pure animal nutrition with zero synthetic urea.
+
+Helps cows and buffaloes achieve higher lactation peaks, improved butterfat test, and healthier body condition.`,
+    features: [
+      "Specially packaged in signature 50 kg red and yellow bags with rumen-protected bypass protein technology.",
+      "Optimal 22% - 24% protein balance designed to elevate daily milk quantity, FAT percentage, and SNF.",
+      "100% natural, digestible ingredients manufactured without synthetic urea or harmful adulterants.",
+      "Proven results for milking dairy cows and Murrah buffaloes across regional dairy farms."
+    ],
     short_description: '50 kg red & yellow bag. Rumen-protected bypass protein for higher milk yield and fat test.',
     image_url: '/images/products/radhe-krishna-bypass-50kg.svg',
     is_active: true,
@@ -104,7 +160,20 @@ export const MOCK_PRODUCTS: Product[] = [
     mrp: 1850,
     available_stock: 48,
     low_stock_threshold: 12,
-    description: 'Radhe Krishna Ekstrapro cattle feed manufactured by Krishna Agrovet. Premium 50 kg turquoise and yellow packaging. Formulated with high-potency extra protein, essential amino acids, and vital minerals designed for high-yielding crossbred cows and Murrah buffaloes to maintain peak lactation.',
+    packaging_info: 'Available in 50Kg standard packaging',
+    description: `Radhe Krishna Ekstrapro cattle feed manufactured by Krishna Agrovet. Premium 50 kg turquoise and yellow packaging. Formulated with high-potency extra protein, essential amino acids, and vital minerals designed for high-yielding crossbred cows and Murrah buffaloes to maintain peak lactation.
+
+Contains 24% crude protein and fortified energy concentrates to maintain body score during high milk output.
+
+Manufactured in compliance with strict quality standards to ensure hygienic, highly palatable pellets.
+
+Prevents negative energy balance and promotes smooth post-calving recovery.`,
+    features: [
+      "Premium 50 kg turquoise and yellow packaging formulated with high-potency 24% extra protein.",
+      "Fortified with essential amino acids, calcium, and phosphorus for high-yielding dairy cattle.",
+      "Made entirely from premium quality ingredients to support sustained peak lactation and animal vitality.",
+      "Maintains superior body condition score and prevents post-calving energy dips."
+    ],
     short_description: '50 kg turquoise & yellow bag. Extra protein formula for high-milking dairy cattle.',
     image_url: '/images/products/radhe-krishna-ekstrapro-50kg.svg',
     is_active: true,

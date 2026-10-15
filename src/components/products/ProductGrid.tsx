@@ -3,7 +3,7 @@ import { Product, Category } from '../../types';
 import { ProductCard } from './ProductCard';
 import { ProductDetailModal } from './ProductDetailModal';
 import { useLanguage } from '../../context/LanguageContext';
-import { SlidersHorizontal, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
+import { Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface ProductGridProps {
   products: Product[];
@@ -22,31 +22,9 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 }) => {
   const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedBrand, setSelectedBrand] = useState<string>('all');
-  const [selectedWeight, setSelectedWeight] = useState<string>('all');
-  const [onlyInStock, setOnlyInStock] = useState<boolean>(false);
-  const [sortBy, setSortBy] = useState<'featured' | 'weight_desc' | 'name'>('featured');
   const [selectedProductForModal, setSelectedProductForModal] = useState<Product | null>(null);
 
-  // Extract unique brands
-  const brands = useMemo(() => {
-    const set = new Set<string>();
-    products.forEach(p => {
-      if (p.brand) set.add(p.brand);
-    });
-    return Array.from(set).sort();
-  }, [products]);
-
-  // Extract unique bag weights
-  const weights = useMemo(() => {
-    const set = new Set<number>();
-    products.forEach(p => {
-      if (p.bag_weight_kg) set.add(p.bag_weight_kg);
-    });
-    return Array.from(set).sort((a, b) => b - a);
-  }, [products]);
-
-  // Filtered & Sorted products
+  // Filtered products (by Category & Search)
   const filteredProducts = useMemo(() => {
     return products
       .filter(p => {
@@ -67,39 +45,18 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           return false;
         }
 
-        // Brand filter
-        if (selectedBrand !== 'all' && p.brand !== selectedBrand) {
-          return false;
-        }
-
-        // Weight filter
-        if (selectedWeight !== 'all' && p.bag_weight_kg !== Number(selectedWeight)) {
-          return false;
-        }
-
-        // Only in stock
-        if (onlyInStock && p.available_stock <= 0) {
-          return false;
-        }
-
         return true;
       })
       .sort((a, b) => {
-        if (sortBy === 'name') return a.name.localeCompare(b.name);
-        if (sortBy === 'weight_desc') return b.bag_weight_kg - a.bag_weight_kg;
-        // Default 'featured'
+        // Featured products first, then by name
         if (a.featured && !b.featured) return -1;
         if (!a.featured && b.featured) return 1;
-        return 0;
+        return a.name.localeCompare(b.name);
       });
-  }, [products, searchQuery, selectedCategory, selectedBrand, selectedWeight, onlyInStock, sortBy]);
+  }, [products, searchQuery, selectedCategory]);
 
   const handleResetFilters = () => {
     setSelectedCategory('all');
-    setSelectedBrand('all');
-    setSelectedWeight('all');
-    setOnlyInStock(false);
-    setSortBy('featured');
   };
 
   return (
@@ -129,7 +86,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         </div>
 
         {/* Category Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-8 scrollbar-none">
           <button
             type="button"
             onClick={() => setSelectedCategory('all')}
@@ -158,78 +115,6 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
               </button>
             );
           })}
-        </div>
-
-        {/* Secondary Filter & Sort Controls */}
-        <div className="bg-white p-4 rounded-2xl border border-warm-cream-dark shadow-xs mb-8 flex flex-wrap items-center justify-between gap-4">
-          
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Brand Filter */}
-            <div className="flex items-center gap-1.5">
-              <label htmlFor="brand-select" className="text-xs text-charcoal-muted font-bold">
-                {t('filterBrand')}:
-              </label>
-              <select
-                id="brand-select"
-                value={selectedBrand}
-                onChange={(e) => setSelectedBrand(e.target.value)}
-                className="text-xs bg-warm-cream border border-warm-cream-dark rounded-xl px-2.5 py-1.5 text-deep-charcoal focus:outline-hidden focus:ring-2 focus:ring-krishna-red font-semibold cursor-pointer"
-              >
-                <option value="all">{t('filterAll')}</option>
-                {brands.map(b => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Bag Weight Filter */}
-            <div className="flex items-center gap-1.5">
-              <label htmlFor="weight-select" className="text-xs text-charcoal-muted font-bold">
-                {t('filterWeight')}:
-              </label>
-              <select
-                id="weight-select"
-                value={selectedWeight}
-                onChange={(e) => setSelectedWeight(e.target.value)}
-                className="text-xs bg-warm-cream border border-warm-cream-dark rounded-xl px-2.5 py-1.5 text-deep-charcoal focus:outline-hidden focus:ring-2 focus:ring-krishna-red font-semibold cursor-pointer"
-              >
-                <option value="all">{t('filterAll')}</option>
-                {weights.map(w => (
-                  <option key={w} value={w.toString()}>{w} kg</option>
-                ))}
-              </select>
-            </div>
-
-            {/* In-Stock Toggle */}
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-deep-charcoal select-none bg-warm-cream px-3 py-1.5 rounded-xl border border-warm-cream-dark">
-              <input
-                type="checkbox"
-                checked={onlyInStock}
-                onChange={(e) => setOnlyInStock(e.target.checked)}
-                className="w-4 h-4 rounded text-krishna-red focus:ring-krishna-red border-warm-cream-dark"
-              />
-              <span>{t('filterInStockOnly')}</span>
-            </label>
-          </div>
-
-          {/* Sort By */}
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-charcoal-muted" />
-            <label htmlFor="sort-select" className="text-xs text-charcoal-muted font-bold">
-              {t('sortLabel')}
-            </label>
-            <select
-              id="sort-select"
-              value={sortBy}
-              onChange={(e: any) => setSortBy(e.target.value)}
-              className="text-xs bg-warm-cream border border-warm-cream-dark rounded-xl px-2.5 py-1.5 text-deep-charcoal focus:outline-hidden focus:ring-2 focus:ring-krishna-red font-semibold cursor-pointer"
-            >
-              <option value="featured">{t('sortFeatured')}</option>
-              <option value="name">{t('sortName')}</option>
-              <option value="weight_desc">{t('sortWeight')}</option>
-            </select>
-          </div>
-
         </div>
 
         {/* Loading Skeletons */}

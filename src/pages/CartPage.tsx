@@ -12,12 +12,11 @@ import { createCartWhatsAppUrl } from '../lib/whatsapp';
 export const CartPage: React.FC = () => {
   const { 
     items, updateQuantity, removeItem, clearCart, 
-    totalBags, totalWeightKg, deliveryFee,
-    isFreeDelivery, bagsForFreeDelivery 
+    totalBags, totalWeightKg
   } = useCart();
   const { settings } = useStoreSettings();
-  const { t } = useLanguage();
-  const cartWhatsAppUrl = createCartWhatsAppUrl(items, settings.owner_whatsapp, settings.business_name);
+  const { lang, t } = useLanguage();
+  const cartWhatsAppUrl = createCartWhatsAppUrl(items, settings.owner_whatsapp, settings.business_name, lang);
 
   return (
     <div className="py-8 sm:py-12 lg:py-16 bg-warm-cream min-h-[calc(100vh-200px)]">
@@ -79,31 +78,6 @@ export const CartPage: React.FC = () => {
             
             {/* Left Col: Cart Items List */}
             <div className="lg:col-span-8 space-y-4">
-              
-              {/* Free delivery prompt */}
-              <div className="bg-white rounded-2xl p-4 border-2 border-brand-yellow/60 shadow-xs">
-                <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-deep-charcoal mb-2">
-                  <span className="flex items-center gap-1.5">
-                    <Truck className="w-4 h-4 text-krishna-red" />
-                    {isFreeDelivery ? (
-                      <strong className="text-krishna-red font-black">{t('freeDeliveryUnlocked')}</strong>
-                    ) : (
-                      <span>{t('addMoreBagsForFree')} (<strong>{bagsForFreeDelivery} {t('bagsCount')}</strong>)</span>
-                    )}
-                  </span>
-                  <span className="font-black text-krishna-red">
-                    {Math.min(totalBags, settings.free_delivery_threshold_bags)} / {settings.free_delivery_threshold_bags}
-                  </span>
-                </div>
-                <div className="w-full bg-warm-cream h-2.5 rounded-full overflow-hidden border border-warm-cream-dark">
-                  <div
-                    className="bg-brand-yellow-dark h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.min(100, (totalBags / (settings.free_delivery_threshold_bags || 5)) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
 
               {/* Items Card */}
               <div className="bg-white rounded-3xl border-2 border-warm-cream-dark overflow-hidden shadow-sm divide-y divide-warm-cream-dark">
@@ -209,8 +183,8 @@ export const CartPage: React.FC = () => {
                     <Truck className="w-4 h-4 text-krishna-red" />
                     <span>{t('deliveryCharges')}:</span>
                   </span>
-                  <span className={deliveryFee === 0 ? 'font-black text-emerald-700' : 'font-black text-deep-charcoal'}>
-                    {deliveryFee === 0 ? t('freeText') : 'Doorstep Farm Delivery'}
+                  <span className="font-black text-deep-charcoal">
+                    Doorstep Farm Delivery
                   </span>
                 </div>
 

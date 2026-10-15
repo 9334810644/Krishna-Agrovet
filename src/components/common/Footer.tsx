@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { Phone, MessageCircle, MapPin, Mail, ShieldCheck, Truck, Clock } from 'lucide-react';
+import { Phone, MessageCircle, MapPin, Mail, ShieldCheck, Truck, Clock, Factory, Building2 } from 'lucide-react';
 import { normalizeWhatsAppNumber } from '../../lib/whatsapp';
 
 export const Footer: React.FC = () => {
@@ -10,10 +10,12 @@ export const Footer: React.FC = () => {
   const { lang, t } = useLanguage();
   const cleanWhatsApp = normalizeWhatsAppNumber(settings.owner_whatsapp);
 
+  const officeAddress = settings.office_address || 'Khasra No. 354/ 1, Patanwa, Industrial area, Ramnagar, Chandauli, ( U. P )';
+
   return (
     <footer className="bg-deep-charcoal text-stone-300 pt-14 pb-10 border-t-4 border-brand-yellow no-print mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-10 mb-12">
           
           {/* Col 1: About Business */}
           <div className="space-y-4">
@@ -54,46 +56,7 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Col 2: Quick Links */}
-          <div>
-            <h3 className="text-white font-bold text-sm tracking-wider uppercase mb-4 font-heading border-b border-stone-800 pb-2">
-              {t('footerSacksLinkTitle')}
-            </h3>
-            <ul className="space-y-2.5 text-sm">
-              <li>
-                <a href="/#products" className="hover:text-brand-yellow transition-colors flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-krishna-red" />
-                  <span>{t('featuredRedTitle')}</span>
-                </a>
-              </li>
-              <li>
-                <a href="/#products" className="hover:text-brand-yellow transition-colors flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-feed-turquoise" />
-                  <span>{t('featuredTurqTitle')}</span>
-                </a>
-              </li>
-              <li>
-                <a href="/#why-us" className="hover:text-brand-yellow transition-colors flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-yellow" />
-                  <span>{t('footerQualityLink')}</span>
-                </a>
-              </li>
-              <li>
-                <a href="/#about" className="hover:text-brand-yellow transition-colors flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                  <span>{t('footerBrandStoryLink')}</span>
-                </a>
-              </li>
-              <li>
-                <a href="/#delivery" className="hover:text-brand-yellow transition-colors flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span>{t('footerDeliveryAreasLink')}</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 3: Delivery Info */}
+          {/* Col 2: Delivery & Mill Info */}
           <div>
             <h3 className="text-white font-bold text-sm tracking-wider uppercase mb-4 font-heading border-b border-stone-800 pb-2">
               {t('footerDispatch')}
@@ -112,6 +75,15 @@ export const Footer: React.FC = () => {
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
+                <Factory className="w-4 h-4 text-brand-yellow shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block text-white text-xs">{t('footerManufacturingTitle')}</strong>
+                  <span className="text-xs text-stone-400">
+                    KRISHNA AGROVET • Ichak, Hazaribagh, Jharkhand - 825402
+                  </span>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-brand-yellow shrink-0 mt-0.5" />
                 <span className="text-xs text-stone-400">
                   {settings.delivery_areas}
@@ -120,7 +92,7 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Col 4: Contact & WhatsApp */}
+          {/* Col 3: Contact & Office Address */}
           <div className="space-y-3">
             <h3 className="text-white font-bold text-sm tracking-wider uppercase mb-4 font-heading border-b border-stone-800 pb-2">
               {t('footerContact')}
@@ -154,6 +126,19 @@ export const Footer: React.FC = () => {
                 <Mail className="w-4 h-4 text-stone-500" />
                 <span className="truncate">{settings.support_email}</span>
               </a>
+            </div>
+
+            {/* Office Address Card */}
+            <div className="pt-2.5 border-t border-stone-800 flex items-start gap-2 text-xs">
+              <Building2 className="w-4 h-4 text-brand-yellow shrink-0 mt-0.5" />
+              <div>
+                <span className="block font-bold text-brand-yellow text-[11px] uppercase tracking-wider">
+                  {t('footerOfficeAddressTitle')}
+                </span>
+                <span className="text-stone-300 leading-relaxed block mt-0.5 font-medium">
+                  {officeAddress}
+                </span>
+              </div>
             </div>
           </div>
 

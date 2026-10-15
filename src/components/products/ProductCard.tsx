@@ -115,10 +115,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
           )}
         </div>
 
-        {/* Bag Weight Pill */}
-        <div className="absolute bottom-2.5 left-2.5 bg-white text-deep-charcoal text-xs font-black px-2.5 py-1 rounded-lg shadow-sm border border-warm-cream-dark">
-          {product.bag_weight_kg || 50} kg {t('bagWeightUnit')}
-        </div>
+        {/* Bag Weight Pill or Packaging Info Overlay */}
+        {product.packaging_info ? (
+          <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-stone-900/85 backdrop-blur-xs text-white text-[11px] font-black py-1 px-2 rounded-lg text-center shadow-md border border-white/20 truncate">
+            {product.packaging_info}
+          </div>
+        ) : (
+          <div className="absolute bottom-2.5 left-2.5 bg-white text-deep-charcoal text-xs font-black px-2.5 py-1 rounded-lg shadow-sm border border-warm-cream-dark">
+            {product.bag_weight_kg || 50} kg {t('bagWeightUnit')}
+          </div>
+        )}
 
         {/* Stock Status Badge */}
         <div className="absolute top-2.5 right-2.5">
@@ -140,7 +146,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
         {/* Admin Direct Photo Upload Badge */}
         {isAdmin && (
           <div 
-            className="absolute bottom-2.5 right-2.5 z-10"
+            className="absolute top-2.5 right-2.5 z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <input
@@ -182,20 +188,33 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
       {/* Content Area */}
       <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3 bg-white">
         
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {/* Title */}
           <h3
             onClick={() => onOpenDetails(product)}
-            className="text-base font-bold text-deep-charcoal font-heading hover:text-krishna-red transition-colors line-clamp-2 cursor-pointer"
+            className="text-base font-bold text-deep-charcoal font-heading hover:text-krishna-red transition-colors line-clamp-2 cursor-pointer leading-snug"
             title={product.name}
           >
             {product.name}
           </h3>
 
-          {/* Short description */}
-          <p className="text-xs text-charcoal-muted line-clamp-2 leading-relaxed">
-            {product.short_description || product.description}
-          </p>
+          {/* Checklist Feature Highlights */}
+          {product.features && product.features.length > 0 ? (
+            <div className="space-y-1.5 pt-1">
+              {product.features.slice(0, 2).map((feat, idx) => (
+                <div key={idx} className="flex items-start gap-2 text-xs text-charcoal-muted leading-snug">
+                  <div className="w-4 h-4 rounded-full bg-stone-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  </div>
+                  <span className="line-clamp-2 font-medium">{feat}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-charcoal-muted line-clamp-2 leading-relaxed">
+              {product.short_description || product.description}
+            </p>
+          )}
 
           {/* Key Nutritional Specs Pills if available */}
           {product.nutritional_info && (

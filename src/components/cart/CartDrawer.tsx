@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { X, Trash2, Plus, Minus, ShoppingBag, Truck, ArrowRight, MessageCircle } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, MessageCircle } from 'lucide-react';
 import { createCartWhatsAppUrl } from '../../lib/whatsapp';
 
 interface CartDrawerProps {
@@ -14,12 +14,11 @@ interface CartDrawerProps {
 export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
   const { 
     items, updateQuantity, removeItem, clearCart, 
-    totalBags, totalWeightKg, deliveryFee,
-    isFreeDelivery, bagsForFreeDelivery 
+    totalBags, totalWeightKg
   } = useCart();
   const { settings } = useStoreSettings();
-  const { t } = useLanguage();
-  const cartWhatsAppUrl = createCartWhatsAppUrl(items, settings.owner_whatsapp, settings.business_name);
+  const { lang, t } = useLanguage();
+  const cartWhatsAppUrl = createCartWhatsAppUrl(items, settings.owner_whatsapp, settings.business_name, lang);
 
   // Close on Escape key
   useEffect(() => {
@@ -73,33 +72,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
               <X className="w-5 h-5" />
             </button>
           </div>
-
-          {/* Delivery threshold progress bar */}
-          {items.length > 0 && (
-            <div className="bg-brand-yellow/15 px-4 py-3 border-b border-brand-yellow/40 text-xs">
-              <div className="flex items-center justify-between text-deep-charcoal font-bold mb-1.5">
-                <span className="flex items-center gap-1.5">
-                  <Truck className="w-4 h-4 text-krishna-red" />
-                  {isFreeDelivery ? (
-                    <strong className="text-krishna-red font-black">{t('freeDeliveryUnlocked')}</strong>
-                  ) : (
-                    <span>{t('addMoreBagsForFree')} (<strong>{bagsForFreeDelivery} {t('bagsCount')}</strong>)</span>
-                  )}
-                </span>
-                <span className="font-black text-krishna-red">
-                  {Math.min(totalBags, settings.free_delivery_threshold_bags)} / {settings.free_delivery_threshold_bags}
-                </span>
-              </div>
-              <div className="w-full bg-warm-cream-dark h-2 rounded-full overflow-hidden">
-                <div
-                  className="bg-brand-yellow-dark h-full rounded-full transition-all duration-300"
-                  style={{
-                    width: `${Math.min(100, (totalBags / (settings.free_delivery_threshold_bags || 5)) * 100)}%`,
-                  }}
-                />
-              </div>
-            </div>
-          )}
 
           {/* Items list */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 bg-warm-cream/30">
@@ -209,8 +181,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
                 <div className="flex justify-between text-charcoal-muted font-bold">
                   <span>{t('deliveryCharges')}:</span>
-                  <span className={deliveryFee === 0 ? 'text-emerald-700 font-black' : 'text-deep-charcoal font-black'}>
-                    {deliveryFee === 0 ? t('freeText') : 'Doorstep Farm Delivery'}
+                  <span className="text-deep-charcoal font-black">
+                    Doorstep Farm Delivery
                   </span>
                 </div>
 

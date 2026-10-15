@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   ORDERS: 'kav_orders',
   SETTINGS: 'kav_settings',
   INVENTORY_MOVEMENTS: 'kav_inventory_movements',
+  DELETED_PRODUCT_IDS: 'kav_deleted_product_ids',
 };
 
 // Helper for local storage
@@ -31,6 +32,17 @@ function setStorageItem<T>(key: string, value: T): void {
   }
 }
 
+function broadcastProductsChanged(action: string, data?: any): void {
+  if (typeof window !== 'undefined') {
+    try {
+      window.dispatchEvent(new CustomEvent('kav_products_changed', { detail: { action, data } }));
+      window.dispatchEvent(new Event('storage'));
+    } catch {
+      // ignore
+    }
+  }
+}
+
 // Generate unique order number: KAV-YYYYMMDD-XXXX
 export function generateMockOrderNumber(): string {
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -41,7 +53,49 @@ export function generateMockOrderNumber(): string {
 export class LocalStoreManager {
   // Products
   static getProducts(): Product[] {
-    return getStorageItem<Product[]>(STORAGE_KEYS.PRODUCTS, MOCK_PRODUCTS);
+    const deletedIds = getStorageItem<string[]>(STORAGE_KEYS.DELETED_PRODUCT_IDS, []);
+    const rawList = getStorageItem<Product[]>(STORAGE_KEYS.PRODUCTS, MOCK_PRODUCTS);
+    
+    // Purge any products that were deleted
+    const list = rawList.filter(p => !deletedIds.includes(p.id));
+    let changed = list.length !== rawList.length;
+
+    const existingMap = new Map<string, Product>();
+    list.forEach(p => existingMap.set(p.id, p));
+
+    for (const mockP of MOCK_PRODUCTS) {
+      // NEVER restore any product that the user has explicitly deleted!
+      if (deletedIds.includes(mockP.id)) {
+        continue;
+      }
+
+      if (!existingMap.has(mockP.id)) {
+        list.unshift(mockP);
+        changed = true;
+      } else {
+        const item = existingMap.get(mockP.id)!;
+        if (!item.features && mockP.features) {
+          item.features = mockP.features;
+          changed = true;
+        }
+        if (!item.packaging_info && mockP.packaging_info) {
+          item.packaging_info = mockP.packaging_info;
+          changed = true;
+        }
+        if (mockP.id === 'prod-kapila-hipro') {
+          item.image_url = mockP.image_url;
+          item.features = mockP.features;
+          item.packaging_info = mockP.packaging_info;
+          item.description = mockP.description;
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      setStorageItem(STORAGE_KEYS.PRODUCTS, list);
+    }
+    return list;
   }
 
   static getProductById(id: string): Product | undefined {
@@ -54,6 +108,12 @@ export class LocalStoreManager {
     let savedProduct: Product;
 
     if (product.id) {
+      // If updating/re-creating, remove from deleted IDs
+      const deletedIds = getStorageItem<string[]>(STORAGE_KEYS.DELETED_PRODUCT_IDS, []);
+      if (deletedIds.includes(product.id)) {
+        setStorageItem(STORAGE_KEYS.DELETED_PRODUCT_IDS, deletedIds.filter(d => d !== product.id));
+      }
+
       // Update
       const index = products.findIndex(p => p.id === product.id);
       if (index === -1) throw new Error('Product not found');
@@ -104,6 +164,7 @@ export class LocalStoreManager {
     }
 
     setStorageItem(STORAGE_KEYS.PRODUCTS, products);
+    broadcastProductsChanged('save', savedProduct);
     return savedProduct;
   }
 
@@ -114,14 +175,23 @@ export class LocalStoreManager {
     products[index].is_active = !products[index].is_active;
     products[index].updated_at = new Date().toISOString();
     setStorageItem(STORAGE_KEYS.PRODUCTS, products);
+    broadcastProductsChanged('toggle', products[index]);
     return products[index];
   }
 
   static deleteProduct(id: string): boolean {
-    const products = this.getProducts();
+    // Record in deleted IDs so mock products never resurrect
+    const deletedIds = getStorageItem<string[]>(STORAGE_KEYS.DELETED_PRODUCT_IDS, []);
+    if (!deletedIds.includes(id)) {
+      deletedIds.push(id);
+      setStorageItem(STORAGE_KEYS.DELETED_PRODUCT_IDS, deletedIds);
+    }
+
+    const products = getStorageItem<Product[]>(STORAGE_KEYS.PRODUCTS, MOCK_PRODUCTS);
     const updated = products.filter(p => p.id !== id);
-    if (updated.length === products.length) return false;
     setStorageItem(STORAGE_KEYS.PRODUCTS, updated);
+
+    broadcastProductsChanged('delete', { id });
     return true;
   }
 
@@ -133,8 +203,30 @@ export class LocalStoreManager {
   // Store Settings
   static getSettings(): StoreSettings {
     const settings = getStorageItem<StoreSettings>(STORAGE_KEYS.SETTINGS, INITIAL_STORE_SETTINGS);
+    let changed = false;
     if (!settings.logo_url) {
       settings.logo_url = '/images/krishna-agrovet-logo.png';
+      changed = true;
+    }
+    if (!settings.hero_banner_url) {
+      settings.hero_banner_url = '/images/banners/radhe-krishna-banner.jpg';
+      changed = true;
+    }
+    if (settings.owner_whatsapp === '919876543210' || !settings.owner_whatsapp || settings.owner_whatsapp.includes('98765')) {
+      settings.owner_whatsapp = '919470847471';
+      settings.owner_phone = '+91 94708 47471';
+      changed = true;
+    }
+    if (settings.support_email !== 'krishnaagarovet@gmail.com') {
+      settings.support_email = 'krishnaagarovet@gmail.com';
+      changed = true;
+    }
+    if (!settings.office_address) {
+      settings.office_address = 'Khasra No. 354/ 1, Patanwa, Industrial area, Ramnagar, Chandauli, ( U. P )';
+      changed = true;
+    }
+    if (changed) {
+      setStorageItem(STORAGE_KEYS.SETTINGS, settings);
     }
     return settings;
   }

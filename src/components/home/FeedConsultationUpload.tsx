@@ -88,7 +88,17 @@ export const FeedConsultationUpload: React.FC = () => {
     other: lang === 'hi' ? 'सामान्य आहार प्रश्न' : 'General Nutrition Question',
   };
 
-  const whatsAppMessage = `Namaste ${settings.business_name},
+  const whatsAppMessage = lang === 'hi'
+    ? `नमस्ते ${settings.business_name},
+मुझे अपने दुधारू पशुओं के लिए आहार परामर्श चाहिए:
+- किसान का नाम: ${farmerName.trim() || 'डेयरी किसान'}
+- गांव / क्षेत्र: ${village.trim() || 'स्थानीय क्षेत्र'}
+- फोटो का प्रकार: ${categoryNames[photoCategory] || photoCategory}
+- दैनिक दूध उत्पादन: ${milkYield || '—'} लीटर/दिन
+${farmerQuestion.trim() ? `- सवाल: "${farmerQuestion.trim()}"` : ''}
+
+मैं अपने फोन से फोटो भेज रहा हूं। कृपया बताएं कि कौन सा राधे कृष्णा पशु आहार (बाईपास प्रोटीन / एक्स्ट्राप्रो) सर्वोत्तम दूध और फैट देगा!`
+    : `Namaste ${settings.business_name},
 I want feed consultation for my dairy livestock:
 - Farmer: ${farmerName.trim() || 'Dairy Farmer'}
 - Village: ${village.trim() || 'Local Area'}

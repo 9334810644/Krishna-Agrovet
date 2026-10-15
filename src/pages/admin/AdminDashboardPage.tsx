@@ -60,7 +60,7 @@ export const AdminDashboardPage: React.FC = () => {
             Radhe Krishna Pashu Aahar Overview
           </h1>
           <p className="text-xs sm:text-sm text-charcoal-muted mt-1">
-            Real-time cattle feed orders, customer WhatsApp dispatches, and 50kg inventory balances.
+            Real-time cattle feed orders, customer WhatsApp dispatches, and inventory balances.
           </p>
         </div>
 
@@ -247,7 +247,7 @@ export const AdminDashboardPage: React.FC = () => {
           {/* Signature Products Stock Card */}
           <div className="bg-white rounded-3xl border-2 border-warm-cream-dark p-6 shadow-sm space-y-4">
             <span className="text-[10px] font-black uppercase text-krishna-red tracking-wider block">
-              SIGNATURE 50 KG FEEDS STOCK
+              SIGNATURE FEEDS STOCK
             </span>
             <h3 className="text-base font-black font-heading text-deep-charcoal">
               Core Product Line Balances
@@ -258,7 +258,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <div key={p.id} className="p-3 bg-warm-cream/50 rounded-2xl border border-warm-cream-dark flex items-center justify-between">
                   <div className="min-w-0 pr-2">
                     <span className="font-bold text-xs text-deep-charcoal block truncate">{p.name}</span>
-                    <span className="text-[11px] text-charcoal-muted">50kg standard sack • Rate on WhatsApp</span>
+                    <span className="text-[11px] text-charcoal-muted">Standard sack • Rate on WhatsApp</span>
                   </div>
                   <div className="text-right shrink-0">
                     <span className={`text-xs font-black px-2 py-0.5 rounded ${

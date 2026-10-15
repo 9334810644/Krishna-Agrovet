@@ -35,7 +35,7 @@ export const AdminLayout: React.FC = () => {
     { label: 'Overview', href: '/admin', icon: LayoutDashboard },
     { label: 'Orders & Receipts', href: '/admin/orders', icon: ShoppingCart },
     { label: 'Products & Packaging', href: '/admin/products', icon: Package },
-    { label: 'Inventory & 50kg Bags', href: '/admin/inventory', icon: Boxes },
+    { label: 'Inventory & Stock', href: '/admin/inventory', icon: Boxes },
     { label: 'Store Settings', href: '/admin/settings', icon: Settings },
   ];
 

@@ -103,7 +103,7 @@ export const AdminInventoryPage: React.FC = () => {
             <span className="text-xs font-bold text-charcoal-muted">Sack Inventory Tracking</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-deep-charcoal font-heading mt-1">
-            50 KG Feed Inventory & Stock Audit
+            Feed Inventory & Stock Audit
           </h1>
           <p className="text-xs sm:text-sm text-charcoal-muted mt-1">
             Real-time bag balances, threshold monitors, and immutable stock audit logs.
@@ -370,7 +370,7 @@ export const AdminInventoryPage: React.FC = () => {
 
               {/* Quantity */}
               <div className="space-y-1">
-                <label className="font-bold text-deep-charcoal">Number of 50kg Bags *</label>
+                <label className="font-bold text-deep-charcoal">Number of Bags *</label>
                 <input
                   type="number"
                   min="1"

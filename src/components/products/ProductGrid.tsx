@@ -163,7 +163,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             </h3>
             <p className="text-sm text-charcoal-muted">
               {searchQuery
-                ? `No products found for "${searchQuery}". Try searching for 'Bypass', 'Ekstrapro', or '50kg'.`
+                ? `No products found for "${searchQuery}". Try searching for 'Bypass' or 'Ekstrapro'.`
                 : 'No products currently fit the selected filters.'}
             </p>
             <button

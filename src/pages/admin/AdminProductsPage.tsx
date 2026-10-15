@@ -348,13 +348,13 @@ export const AdminProductsPage: React.FC = () => {
             <span className="bg-krishna-red text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider">
               KRISHNA AGROVET
             </span>
-            <span className="text-xs font-bold text-charcoal-muted">50 KG Cattle Feed Inventory</span>
+            <span className="text-xs font-bold text-charcoal-muted">Cattle Feed Inventory</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-deep-charcoal font-heading mt-1">
             Cattle Feed Products & Packaging
           </h1>
           <p className="text-xs sm:text-sm text-charcoal-muted mt-1">
-            Manage product catalog, 50kg bag photos, WhatsApp inquiries, and stock balances.
+            Manage product catalog, bag photos, WhatsApp inquiries, and stock balances.
           </p>
         </div>
 
@@ -617,7 +617,7 @@ export const AdminProductsPage: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, bag_weight_kg: Number(e.target.value) })}
                     className="w-full px-3 py-2 rounded-xl border border-warm-cream-dark bg-white text-xs focus:ring-1 focus:ring-krishna-red font-bold"
                   />
-                  <span className="text-[10px] text-charcoal-muted block">Standard cattle feed sack: 50 kg</span>
+                  <span className="text-[10px] text-charcoal-muted block">Standard cattle feed sack</span>
                 </div>
 
                 <div className="p-3 bg-white rounded-xl border border-warm-cream-dark space-y-1">

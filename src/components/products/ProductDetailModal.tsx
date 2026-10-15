@@ -96,8 +96,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const cleanWhatsAppNumber = normalizeWhatsAppNumber(settings.owner_whatsapp);
   const productWhatsAppUrl = `https://wa.me/${cleanWhatsAppNumber}?text=${encodeURIComponent(
     lang === 'hi'
-      ? `नमस्ते ${settings.business_name}, मुझे ${product.name} (50 किग्रा बोरी) की उपलब्धता और फार्म डिलीवरी के बारे में जानना है।`
-      : `Namaste ${settings.business_name}, I want to ask about ${product.name} (50kg bag) availability and doorstep farm delivery.`
+      ? `नमस्ते ${settings.business_name}, मुझे ${product.name} की उपलब्धता और फार्म डिलीवरी के बारे में जानना है।`
+      : `Namaste ${settings.business_name}, I want to ask about ${product.name} availability and doorstep farm delivery.`
   )}`;
 
   const relatedProducts = allProducts.filter(p => p.id !== product.id && p.is_active).slice(0, 3);
@@ -238,7 +238,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   <span>{t('rateOnWhatsApp')}</span>
                 </span>
                 <span className="text-xs text-charcoal-muted font-bold">
-                  {product.bag_weight_kg || 50} kg {t('standard50kg')}
+                  {t('standard50kg')}
                 </span>
               </div>
 

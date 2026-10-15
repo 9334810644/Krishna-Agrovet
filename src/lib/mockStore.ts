@@ -82,6 +82,21 @@ export class LocalStoreManager {
           item.packaging_info = mockP.packaging_info;
           changed = true;
         }
+        if (item.packaging_info && /50\s*kg/i.test(item.packaging_info)) {
+          item.packaging_info = 'सुरक्षित सीलबंद बोरियां (Sealed Feed Bags)';
+          changed = true;
+        }
+        if (item.short_description && /50\s*kg/i.test(item.short_description)) {
+          item.short_description = item.short_description.replace(/50\s*kg\s*/gi, '').trim();
+          changed = true;
+        }
+        if (item.features) {
+          const newFeat = item.features.map(f => f.replace(/50\s*kg\s*/gi, ''));
+          if (JSON.stringify(newFeat) !== JSON.stringify(item.features)) {
+            item.features = newFeat;
+            changed = true;
+          }
+        }
         if (mockP.id === 'prod-kapila-hipro') {
           item.image_url = mockP.image_url;
           item.features = mockP.features;

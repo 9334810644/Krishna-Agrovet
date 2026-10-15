@@ -22,7 +22,7 @@ export const MOCK_CATEGORIES: Category[] = [
     id: 'cat-1',
     name: 'Bypass Protein (बाईपास)',
     slug: 'bypass-protein',
-    description: 'Specialized 50kg feed sacks with rumen-protected bypass protein for higher milk yield and butterfat.',
+    description: 'Specialized feed sacks with rumen-protected bypass protein for higher milk yield and butterfat.',
     icon_name: 'Sparkles',
     display_order: 1,
     is_active: true,
@@ -77,8 +77,8 @@ export const MOCK_PRODUCTS: Product[] = [
     mrp: 1850,
     available_stock: 50,
     low_stock_threshold: 12,
-    packaging_info: 'Available in 50Kg and 25kg packaging',
-    short_description: 'Available in 50Kg and 25kg packaging. 24% protein & 4% fat balanced nutrition for high milk yield.',
+    packaging_info: 'सुरक्षित सीलबंद बोरियां (Sealed Feed Bags)',
+    short_description: 'सुरक्षित सीलबंद बोरियां। 24% protein & 4% fat balanced nutrition for high milk yield.',
     description: `Contains an optimal balance of 24% protein and 4% fat, specifically designed to support cattle's nutritional needs. Manufactured in compliance with ISI standards as a BIS Type-I feed, ensuring quality and reliability.
 
 Manufactured under International Organization Standards, ensuring premium quality and reliability.
@@ -101,7 +101,7 @@ Helps cattle reach their full milk-producing potential while maintaining long-te
       standard: 'BIS Type-I (ISI Standard)',
       quality: 'ISO Certified • No Urea',
       ingredients: '100% Natural Ingredients',
-      packaging: '50 kg & 25 kg bags',
+      packaging: 'सुरक्षित सीलबंद बोरियां (Sealed Bags)',
     },
     feeding_guide: 'Feed 400g to 500g per liter of milk yield, along with quality green and dry fodder.',
     created_at: new Date(Date.now() - 35 * 86400000).toISOString(),
@@ -118,8 +118,8 @@ Helps cattle reach their full milk-producing potential while maintaining long-te
     mrp: 1750,
     available_stock: 65,
     low_stock_threshold: 15,
-    packaging_info: 'Available in 50Kg standard packaging',
-    description: `Radhe Krishna Bypass Protein cattle feed manufactured by Krishna Agrovet. Specially packaged in signature 50 kg red and yellow bags. Contains rumen-protected bypass protein and balanced digestible energy for milking cows and Murrah buffaloes to elevate daily milk quantity, FAT percentage, and SNF.
+    packaging_info: 'सुरक्षित सीलबंद बोरियां (Sealed Feed Bags)',
+    description: `Radhe Krishna Bypass Protein cattle feed manufactured by Krishna Agrovet. Specially packaged in signature red and yellow bags. Contains rumen-protected bypass protein and balanced digestible energy for milking cows and Murrah buffaloes to elevate daily milk quantity, FAT percentage, and SNF.
 
 Formulated with 22% - 24% crude protein and high rumen-bypass protein fraction for maximum amino acid absorption.
 
@@ -127,12 +127,12 @@ Manufactured under strict quality standards ensuring 100% pure animal nutrition 
 
 Helps cows and buffaloes achieve higher lactation peaks, improved butterfat test, and healthier body condition.`,
     features: [
-      "Specially packaged in signature 50 kg red and yellow bags with rumen-protected bypass protein technology.",
+      "Specially packaged in signature red and yellow bags with rumen-protected bypass protein technology.",
       "Optimal 22% - 24% protein balance designed to elevate daily milk quantity, FAT percentage, and SNF.",
       "100% natural, digestible ingredients manufactured without synthetic urea or harmful adulterants.",
       "Proven results for milking dairy cows and Murrah buffaloes across regional dairy farms."
     ],
-    short_description: '50 kg red & yellow bag. Rumen-protected bypass protein for higher milk yield and fat test.',
+    short_description: 'Red & yellow bag. Rumen-protected bypass protein for higher milk yield and fat test.',
     image_url: '/images/products/radhe-krishna-bypass-50kg.svg',
     is_active: true,
     featured: true,
@@ -160,8 +160,8 @@ Helps cows and buffaloes achieve higher lactation peaks, improved butterfat test
     mrp: 1850,
     available_stock: 48,
     low_stock_threshold: 12,
-    packaging_info: 'Available in 50Kg standard packaging',
-    description: `Radhe Krishna Ekstrapro cattle feed manufactured by Krishna Agrovet. Premium 50 kg turquoise and yellow packaging. Formulated with high-potency extra protein, essential amino acids, and vital minerals designed for high-yielding crossbred cows and Murrah buffaloes to maintain peak lactation.
+    packaging_info: 'सुरक्षित सीलबंद बोरियां (Sealed Feed Bags)',
+    description: `Radhe Krishna Ekstrapro cattle feed manufactured by Krishna Agrovet. Premium turquoise and yellow packaging. Formulated with high-potency extra protein, essential amino acids, and vital minerals designed for high-yielding crossbred cows and Murrah buffaloes to maintain peak lactation.
 
 Contains 24% crude protein and fortified energy concentrates to maintain body score during high milk output.
 
@@ -169,12 +169,12 @@ Manufactured in compliance with strict quality standards to ensure hygienic, hig
 
 Prevents negative energy balance and promotes smooth post-calving recovery.`,
     features: [
-      "Premium 50 kg turquoise and yellow packaging formulated with high-potency 24% extra protein.",
+      "Premium turquoise and yellow packaging formulated with high-potency 24% extra protein.",
       "Fortified with essential amino acids, calcium, and phosphorus for high-yielding dairy cattle.",
       "Made entirely from premium quality ingredients to support sustained peak lactation and animal vitality.",
       "Maintains superior body condition score and prevents post-calving energy dips."
     ],
-    short_description: '50 kg turquoise & yellow bag. Extra protein formula for high-milking dairy cattle.',
+    short_description: 'Turquoise & yellow bag. Extra protein formula for high-milking dairy cattle.',
     image_url: '/images/products/radhe-krishna-ekstrapro-50kg.svg',
     is_active: true,
     featured: true,
@@ -202,7 +202,7 @@ Prevents negative energy balance and promotes smooth post-calving recovery.`,
     available_stock: 28,
     low_stock_threshold: 10,
     description: 'High-performance specialized formula designed for elite high-yielding crossbred cows (HF / Jersey) and Murrah buffaloes giving 18 to 25+ liters daily. Packed with 24% crude protein including 55% rumen-protected bypass protein and calcium salts of fatty acids to prevent severe post-calving weight loss.',
-    short_description: '50kg high-density 24% protein bypass feed for top-tier 18-25L milk producers.',
+    short_description: 'High-density 24% protein bypass feed for top-tier 18-25L milk producers.',
     image_url: 'https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&w=800&q=80',
     is_active: true,
     featured: true,
@@ -309,7 +309,7 @@ Prevents negative energy balance and promotes smooth post-calving recovery.`,
     available_stock: 6, // Low stock demo!
     low_stock_threshold: 12,
     description: 'Traditional double-filtered cold pressed mustard oil cake with no chemicals or adulterants. Rich in natural plant proteins and residual pungent oils (7.8%+) that provide natural heating and sustained milk fat during winter.',
-    short_description: '50kg bag pure cold-pressed mustard cake. Natural 34% protein and healthy oil for cattle.',
+    short_description: 'Pure cold-pressed mustard cake. Natural 34% protein and healthy oil for cattle.',
     image_url: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=800&q=80',
     is_active: true,
     featured: false,
@@ -335,7 +335,7 @@ Prevents negative energy balance and promotes smooth post-calving recovery.`,
     available_stock: 42,
     low_stock_threshold: 15,
     description: 'Certified compound cattle feed from GCMMF (Amul). Highly popular among cooperative milk producers across northern India for its proven consistency, clean grain composition, and balanced energy.',
-    short_description: '50kg genuine Amul cattle feed bag. Reliable everyday dairy nutrition.',
+    short_description: 'Genuine Amul cattle feed bag. Reliable everyday dairy nutrition.',
     image_url: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=800&q=80',
     is_active: true,
     featured: true,

@@ -92,7 +92,7 @@ export const AdminLoginPage: React.FC = () => {
               <span>Interactive Demo Admin Access</span>
             </div>
             <p className="text-amber-100/80 leading-relaxed text-[11px]">
-              Use prefilled credentials below or tap the quick login button to manage 50kg feed products, stock quantities, and customer orders.
+              Use prefilled credentials below or tap the quick login button to manage cattle feed products, stock quantities, and customer orders.
             </p>
             <button
               type="button"

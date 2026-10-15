@@ -293,7 +293,7 @@ I am attaching the photo from my device now. Please guide me which Radhe Krishna
                 <p className="text-xs text-charcoal-muted mt-0.5">
                   {lang === 'hi'
                     ? 'यह जानकारी हमारे विशेषज्ञों को सर्वोत्तम सलाह तैयार करने में मदद करती है।'
-                    : 'Helps Krishna Agrovet recommend the exact 50kg bag (Bypass Protein or Ekstrapro).'}
+                    : 'Helps Krishna Agrovet recommend the exact feed (Bypass Protein or Ekstrapro).'}
                 </p>
               </div>
 

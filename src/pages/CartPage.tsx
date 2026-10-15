@@ -36,7 +36,7 @@ export const CartPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mb-8">
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-krishna-red uppercase tracking-wider mb-1">
-              <span>KRISHNA AGROVET • 50 KG SACKS</span>
+              <span>KRISHNA AGROVET • CATTLE FEED</span>
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-deep-charcoal font-heading">
               {t('cartTitle')}

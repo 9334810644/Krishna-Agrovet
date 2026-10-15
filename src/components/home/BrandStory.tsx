@@ -68,8 +68,8 @@ export const BrandStory: React.FC = () => {
                       {t('brandName')}
                     </span>
                   </div>
-                  <span className="bg-krishna-red text-white text-[10px] font-black px-2.5 py-1 rounded-lg">
-                    50 KG BAGS
+                  <span className="bg-krishna-red text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
+                    {lang === 'hi' ? 'उच्च गुणवत्ता' : 'PREMIUM FEED'}
                   </span>
                 </div>
               </div>

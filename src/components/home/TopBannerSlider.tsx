@@ -50,7 +50,7 @@ export const TopBannerSlider: React.FC = () => {
       highlights: [
         lang === 'hi' ? '15L+ प्रतिदिन दूध उत्पादन' : '15L+ Milk Potential',
         lang === 'hi' ? 'उच्च बटरफैट और SNF' : 'High Butterfat & SNF',
-        lang === 'hi' ? '50 KG सीलबंद बोरी' : '50 KG Pure Sacks'
+        lang === 'hi' ? 'शुद्ध सीलबंद बोरी' : 'Pure Sealed Sacks'
       ],
       primaryCta: {
         label: lang === 'hi' ? 'उत्पाद देखें' : 'View Products',

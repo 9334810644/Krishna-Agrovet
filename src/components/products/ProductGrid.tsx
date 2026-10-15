@@ -68,7 +68,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-krishna-red bg-white border border-krishna-red/20 px-3.5 py-1 rounded-full mb-2 shadow-xs">
               <Sparkles className="w-3.5 h-3.5 text-brand-yellow-dark" />
-              <span>KRISHNA AGROVET • 50 KG STANDARD BAGS</span>
+              <span>KRISHNA AGROVET • AUTHENTIC CATTLE FEED</span>
             </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-deep-charcoal font-heading tracking-tight">
               {t('catalogTitle')}

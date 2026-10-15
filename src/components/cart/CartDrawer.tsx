@@ -59,7 +59,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                   {t('cartTitle')}
                 </h2>
                 <span className="text-[11px] text-charcoal-muted font-bold block">
-                  KRISHNA AGROVET • 50 KG SACKS
+                  KRISHNA AGROVET • CATTLE FEED
                 </span>
               </div>
             </div>

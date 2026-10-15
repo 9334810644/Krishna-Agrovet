@@ -73,7 +73,9 @@ export const DeliveryCoverage: React.FC = () => {
                 <span className="bg-brand-yellow text-deep-charcoal text-[10px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wider">
                   KRISHNA AGROVET
                 </span>
-                <span className="text-xs text-brand-yellow font-bold">50 KG PACKING</span>
+                <span className="text-xs text-brand-yellow font-bold uppercase tracking-wider">
+                  {lang === 'hi' ? 'प्रामाणिक पशु आहार' : 'Authentic Feed'}
+                </span>
               </div>
 
               <h3 className="text-lg sm:text-xl font-black font-heading text-white">

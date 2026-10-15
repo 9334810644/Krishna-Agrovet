@@ -18,7 +18,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     brandSub: 'पशु आहार',
     manufacturerText: 'निर्माता: कृष्णा एग्रोवेट (KRISHNA AGROVET)',
     tagline: 'भरोसेमंद पशु आहार, आपके पशुधन के लिए',
-    deliveryAnnouncement: '🌾 राधे कृष्णा पशु आहार • कृष्णा एग्रोवेट • 50 किग्रा पैकिंग • सीधे फार्म तक टेम्पो डिलीवरी',
+    deliveryAnnouncement: '🌾 राधे कृष्णा पशु आहार • कृष्णा एग्रोवेट • सीधे फार्म तक टेम्पो डिलीवरी',
 
     // Header & Nav
     navProducts: 'उत्पाद कैटलॉग',
@@ -34,28 +34,28 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     // Hero
     heroHeadline: 'भरोसेमंद पशु आहार, आपके पशुधन के लिए',
     heroSubline: 'आपकी डेयरी की उन्नति और पशुओं के संपूर्ण पोषण के लिए',
-    heroParagraph: 'उत्तम पाचकता, बाईपास प्रोटीन और संतुलित ऊर्जा से भरपूर 50 किग्रा पशु आहार। दूध की मात्रा, गाढ़ापन और फैट (FAT) बढ़ाने के लिए डेयरी किसानों की पहली पसंद।',
+    heroParagraph: 'उत्तम पाचकता, बाईपास प्रोटीन और संतुलित ऊर्जा से भरपूर पशु आहार। दूध की मात्रा, गाढ़ापन और फैट (FAT) बढ़ाने के लिए डेयरी किसानों की पहली पसंद।',
     heroCtaPrimary: 'हमारे उत्पाद देखें',
     heroCtaWhatsApp: 'WhatsApp पर संपर्क करें',
-    heroPill: 'सीधे मिल से ताज़ा आपूर्ति • 50 किग्रा बोरियां',
+    heroPill: 'सीधे मिल से ताज़ा आपूर्ति • प्रामाणिक बोरियां',
     heroBenefit1: '20-24% क्रूड प्रोटीन',
     heroBenefit2: 'अधिक फैट (FAT) व SNF',
     heroBenefit3: 'डिलीवरी पर नकद भुगतान',
     heroFreeDeliveryNote: 'गांव के शेड तक सुरक्षित टेम्पो डिलीवरी',
-    realPackaging: 'कृष्णा एग्रोवेट • 50 किग्रा प्रामाणिक पैकिंग',
+    realPackaging: 'कृष्णा एग्रोवेट • प्रामाणिक पशु आहार',
     realProductsCount: '2 प्रामाणिक उत्पाद',
     genuineSacksNote: '100% प्रामाणिक मिल बोरियां',
-    standard50kg: 'मानक 50 किग्रा',
+    standard50kg: 'मानक बोरी',
 
     // Featured Bags
     featuredRedTitle: 'राधे कृष्णा बाईपास प्रोटीन',
-    featuredRedSub: 'लाल व पीला बैग (50 किग्रा)',
+    featuredRedSub: 'लाल व पीला बैग',
     featuredTurqTitle: 'राधे कृष्णा एक्स्ट्राप्रो',
-    featuredTurqSub: 'फ़िरोज़ी व पीला बैग (50 किग्रा)',
+    featuredTurqSub: 'फ़िरोज़ी व पीला बैग',
 
     // Product Section
     catalogTitle: 'पशु आहार उत्पाद सूची',
-    catalogSubtitle: 'कृष्णा एग्रोवेट द्वारा निर्मित प्रामाणिक 50 किग्रा बोरियां एवं पूरक आहार।',
+    catalogSubtitle: 'कृष्णा एग्रोवेट द्वारा निर्मित प्रामाणिक बोरियां एवं पूरक आहार।',
     filterAll: 'सभी उत्पाद',
     filterBrand: 'ब्रांड',
     filterWeight: 'बैग वजन',

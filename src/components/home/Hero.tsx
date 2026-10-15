@@ -31,15 +31,6 @@ export const Hero: React.FC = () => {
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-3xl mx-auto space-y-6">
-          
-          {/* Top Pill badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-brand-yellow/80 shadow-xs text-krishna-red text-xs sm:text-sm font-bold">
-            <span className="bg-krishna-red text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-              KRISHNA AGROVET
-            </span>
-            <span>{t('heroPill')}</span>
-          </div>
-
           {/* Main Title */}
           <div className="space-y-2">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black font-heading tracking-tight leading-[1.15] text-deep-charcoal">

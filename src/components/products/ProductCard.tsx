@@ -81,17 +81,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
           loading="lazy"
         />
 
-        {/* Top Badges */}
-        <div className="absolute top-3 left-3 max-w-[65%] flex flex-wrap gap-1.5 items-center">
-          <span className="bg-deep-charcoal text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-xs">
-            {product.brand?.includes('Krishna') ? 'KRISHNA AGROVET' : product.brand}
-          </span>
-          {product.featured && (
-            <span className="bg-brand-yellow text-deep-charcoal text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-xs">
-              Featured
-            </span>
-          )}
-        </div>
 
         {/* Bag Weight Pill or Packaging Info Overlay */}
         {product.packaging_info ? (

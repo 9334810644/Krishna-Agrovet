@@ -135,9 +135,6 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
           {/* Badges */}
           <div className="absolute top-3 left-3 sm:top-4 sm:left-4 max-w-[calc(100%-48px)] flex flex-wrap gap-1.5 sm:gap-2">
-            <span className="bg-deep-charcoal text-white text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg uppercase tracking-wider shadow-xs">
-              {product.brand?.includes('Krishna') ? 'KRISHNA AGROVET' : product.brand}
-            </span>
             <span className="bg-brand-yellow text-deep-charcoal text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg shadow-xs flex items-center gap-1">
               <Scale className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-deep-charcoal" />
               <span>{product.bag_weight_kg || 50} kg Standard Bag</span>

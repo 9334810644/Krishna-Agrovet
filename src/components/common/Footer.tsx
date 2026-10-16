@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { Phone, MessageCircle, MapPin, Mail, ShieldCheck, Truck, Clock, Factory, Building2 } from 'lucide-react';
+import { Phone, MessageCircle, MapPin, Mail, ShieldCheck, Truck, Clock, Factory, Building2, Lock } from 'lucide-react';
 import { normalizeWhatsAppNumber } from '../../lib/whatsapp';
 
 export const Footer: React.FC = () => {
@@ -13,7 +13,7 @@ export const Footer: React.FC = () => {
   const officeAddress = settings.office_address || 'Khasra No. 354/ 1, Patanwa, Industrial area, Ramnagar, Chandauli, ( U. P )';
 
   return (
-    <footer className="bg-deep-charcoal text-stone-300 pt-14 pb-10 border-t-4 border-brand-yellow no-print mt-auto">
+    <footer className="bg-deep-charcoal text-stone-300 pt-14 pb-24 sm:pb-12 border-t-4 border-brand-yellow no-print mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-10 mb-12">
           
@@ -146,10 +146,10 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-stone-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
-          <p>
+          <p className="text-center sm:text-left">
             © {new Date().getFullYear()} {t('brandName')} • {t('manufacturerText')}. {t('footerRights')}
           </p>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-5 gap-y-2.5">
             <a href="/#products" className="hover:text-stone-400 transition-colors">
               {t('navProducts')}
             </a>
@@ -159,8 +159,14 @@ export const Footer: React.FC = () => {
             <a href="/#faq" className="hover:text-stone-400 transition-colors">
               {lang === 'hi' ? 'अक्सर पूछे सवाल (FAQ)' : 'FAQ'}
             </a>
-            <Link to="/admin/login" className="hover:text-stone-400 transition-colors text-[11px]">
-              {t('navAdmin')}
+            <span className="text-stone-700 hidden sm:inline">•</span>
+            <Link 
+              to="/admin/login" 
+              className="inline-flex items-center gap-1.5 text-stone-400 hover:text-brand-yellow font-medium transition-colors py-1 px-2.5 rounded-lg bg-stone-900/60 border border-stone-800 hover:border-brand-yellow/50 active:scale-95"
+              title="Staff & Management Login"
+            >
+              <Lock className="w-3 h-3 text-stone-400 group-hover:text-brand-yellow shrink-0" />
+              <span>{lang === 'hi' ? 'स्टाफ लॉगिन (Staff Login)' : 'Staff Login'}</span>
             </Link>
           </div>
         </div>

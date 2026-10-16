@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { isFirebaseConfigured } from '../../lib/firebase';
 import { Database, X } from 'lucide-react';
 

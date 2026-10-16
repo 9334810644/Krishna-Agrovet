@@ -90,7 +90,7 @@ export const AdminInventoryPage: React.FC = () => {
       );
 
       // Update product in list
-      setProducts(products.map(p => p.id === updated.id ? updated : p));
+      setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
       
       // Reload audit movements
       const updatedMovements = await dataService.getInventoryMovements();

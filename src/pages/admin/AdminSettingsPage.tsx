@@ -230,8 +230,51 @@ export const AdminSettingsPage: React.FC = () => {
   const firestoreRulesCode = `rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'krishnaagrovet@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+    match /_connection_test/{docId} {
       allow read, write: if true;
+    }
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['available_stock', 'updated_at'])
+      );
+    }
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /store_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /orders/{orderId} {
+      allow create: if request.resource.data.customer_name != null
+                    && request.resource.data.customer_phone != null
+                    && request.resource.data.full_address != null
+                    && request.resource.data.total_bags > 0;
+      allow read: if true;
+      allow update, delete: if isAdmin();
+    }
+    match /inventory_movements/{movementId} {
+      allow read: if isAdmin();
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+    match /admins/{adminId} {
+      allow read: if request.auth != null && (request.auth.uid == adminId || isAdmin());
+      allow write: if isAdmin();
     }
   }
 }`;

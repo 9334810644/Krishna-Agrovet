@@ -5,21 +5,29 @@ service cloud.firestore {
     // Helper function to check if user is an authenticated admin
     function isAdmin() {
       return request.auth != null && (
+        request.auth.token.email == 'krishnaagrovet@gmail.com' ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
     }
 
-    // Products: Public can view active feeds; admins have full access
+    // Ping & Health Test Document
+    match /_connection_test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Products: Public storefront can view feeds; admins can add/edit/delete; checkout can deduct stock
     match /products/{productId} {
-      allow read: if resource.data.is_active == true || isAdmin();
-      allow write: if isAdmin();
+      allow read: if true;
+      allow write: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['available_stock', 'updated_at'])
+      );
     }
 
     // Categories: Public can view active categories; admins have full access
     match /categories/{categoryId} {
-      allow read: if resource.data.is_active == true || isAdmin();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -29,21 +37,20 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Orders: Public can submit orders with valid fields; admins can view and manage all orders
+    // Orders: Public can submit orders with valid fields and query their order confirmation; admins can manage
     match /orders/{orderId} {
       allow create: if request.resource.data.customer_name != null
                     && request.resource.data.customer_phone != null
                     && request.resource.data.full_address != null
-                    && request.resource.data.total_bags > 0
-                    && request.resource.data.total_amount >= 0;
-      allow read: if isAdmin() || (resource.data.order_number != null);
+                    && request.resource.data.total_bags > 0;
+      allow read: if true;
       allow update, delete: if isAdmin();
     }
 
     // Inventory Movements: Internal audit log. Admins can view; system transaction writes movements
     match /inventory_movements/{movementId} {
       allow read: if isAdmin();
-      allow create: if true; // Allowed when order transactions adjust stock
+      allow create: if true; // Allowed when orders adjust stock
       allow update, delete: if isAdmin();
     }
 

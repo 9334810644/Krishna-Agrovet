@@ -6,7 +6,7 @@ import {
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { 
-  Product, Category, Order, StoreSettings, InventoryMovement, 
+  Product, Category, Order, OrderItem, StoreSettings, InventoryMovement, 
   CheckoutCustomerData, AtomicOrderResult, OrderStatus, InventoryMovementReason 
 } from '../types';
 import { LocalStoreManager, generateMockOrderNumber } from './mockStore';
@@ -102,6 +102,17 @@ if (app && typeof window !== 'undefined' && currentConfig.measurementId) {
   }).catch(() => {});
 }
 
+// Unwanted legacy dummy product IDs that should never be displayed
+const UNWANTED_PRODUCT_IDS = new Set([
+  'prod-kapila-hipro',
+  'prod-3',
+  'prod-4',
+  'prod-5',
+  'prod-6',
+  'prod-7',
+  'prod-8',
+]);
+
 // ==============================================================================
 // UNIFIED DATA SERVICE (Cloud Firestore + Reactive Real-Time & Fallback)
 // ==============================================================================
@@ -111,14 +122,16 @@ export const dataService = {
   subscribeProducts(callback: (products: Product[]) => void, onError?: (err: any) => void): Unsubscribe {
     if (isFirebaseConfigured() && db) {
       try {
-        const q = query(collection(db, 'products'), orderBy('name', 'asc'));
         const unsubscribe = onSnapshot(
-          q,
+          collection(db, 'products'),
           async (snapshot) => {
             if (snapshot.empty) {
+              // Immediately deliver local initial products so the page never renders blank!
+              const initial = LocalStoreManager.getProducts();
+              callback(initial);
+
               // Auto-seed Firestore from local catalog if cloud database is empty
               try {
-                const initial = LocalStoreManager.getProducts();
                 for (const prod of initial) {
                   await setDoc(doc(db, 'products', prod.id), {
                     ...prod,
@@ -127,15 +140,33 @@ export const dataService = {
                   }, { merge: true });
                 }
               } catch (seedErr) {
-                console.error('Error auto-seeding products to Firestore:', seedErr);
+                console.warn('Auto-seed products skipped (requires admin permissions):', seedErr);
               }
               return;
             }
 
             const list: Product[] = [];
             snapshot.forEach((d) => {
-              list.push({ id: d.id, ...d.data() } as Product);
+              const p = { id: d.id, ...d.data() } as Product;
+              if (!UNWANTED_PRODUCT_IDS.has(p.id)) {
+                list.push(p);
+              }
             });
+
+            // If all documents in Firestore were legacy dummy products and list is empty
+            if (list.length === 0) {
+              const initial = LocalStoreManager.getProducts();
+              callback(initial);
+              return;
+            }
+
+            // In-memory sort: featured first, then by name (no Firestore index required)
+            list.sort((a, b) => {
+              if (a.featured && !b.featured) return -1;
+              if (!a.featured && b.featured) return 1;
+              return (a.name || '').localeCompare(b.name || '');
+            });
+
             callback(list);
           },
           (err) => {
@@ -168,14 +199,23 @@ export const dataService = {
   async getProducts(): Promise<Product[]> {
     if (isFirebaseConfigured() && db) {
       try {
-        const q = query(collection(db, 'products'), orderBy('name', 'asc'));
-        const snap = await getDocs(q);
+        const snap = await getDocs(collection(db, 'products'));
         if (!snap.empty) {
           const list: Product[] = [];
           snap.forEach(d => {
-            list.push({ id: d.id, ...d.data() } as Product);
+            const p = { id: d.id, ...d.data() } as Product;
+            if (!UNWANTED_PRODUCT_IDS.has(p.id)) {
+              list.push(p);
+            }
           });
-          return list;
+          if (list.length > 0) {
+            list.sort((a, b) => {
+              if (a.featured && !b.featured) return -1;
+              if (!a.featured && b.featured) return 1;
+              return (a.name || '').localeCompare(b.name || '');
+            });
+            return list;
+          }
         }
       } catch (err) {
         console.error('Firestore getProducts error:', err);
@@ -216,7 +256,7 @@ export const dataService = {
         low_stock_threshold: Number(product.low_stock_threshold) || 10,
         description: product.description || '',
         short_description: product.short_description || '',
-        image_url: product.image_url || 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=800&q=80',
+        image_url: product.image_url || '/images/products/radhe-krishna-bypass-50kg.svg',
         is_active: product.is_active !== undefined ? product.is_active : true,
         featured: !!product.featured,
         nutritional_info: product.nutritional_info || {},
@@ -274,18 +314,18 @@ export const dataService = {
   subscribeCategories(callback: (categories: Category[]) => void, onError?: (err: any) => void): Unsubscribe {
     if (isFirebaseConfigured() && db) {
       try {
-        const q = query(collection(db, 'categories'), orderBy('display_order', 'asc'));
         const unsubscribe = onSnapshot(
-          q,
+          collection(db, 'categories'),
           async (snapshot) => {
             if (snapshot.empty) {
+              const initial = LocalStoreManager.getCategories();
+              callback(initial);
               try {
-                const initial = LocalStoreManager.getCategories();
                 for (const cat of initial) {
                   await setDoc(doc(db, 'categories', cat.id), cat, { merge: true });
                 }
               } catch (seedErr) {
-                console.error('Error auto-seeding categories to Firestore:', seedErr);
+                console.warn('Auto-seed categories skipped:', seedErr);
               }
               return;
             }
@@ -294,6 +334,7 @@ export const dataService = {
             snapshot.forEach((d) => {
               list.push({ id: d.id, ...d.data() } as Category);
             });
+            list.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
             callback(list);
           },
           (err) => {
@@ -324,13 +365,13 @@ export const dataService = {
   async getCategories(): Promise<Category[]> {
     if (isFirebaseConfigured() && db) {
       try {
-        const q = query(collection(db, 'categories'), orderBy('display_order', 'asc'));
-        const snap = await getDocs(q);
+        const snap = await getDocs(collection(db, 'categories'));
         if (!snap.empty) {
           const list: Category[] = [];
           snap.forEach(d => {
             list.push({ id: d.id, ...d.data() } as Category);
           });
+          list.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
           return list;
         }
       } catch (err) {
@@ -349,11 +390,12 @@ export const dataService = {
           docRef,
           async (snapshot) => {
             if (!snapshot.exists()) {
+              const initial = LocalStoreManager.getSettings();
+              callback(initial);
               try {
-                const initial = LocalStoreManager.getSettings();
                 await setDoc(docRef, initial, { merge: true });
               } catch (seedErr) {
-                console.error('Error auto-seeding settings to Firestore:', seedErr);
+                console.warn('Auto-seed settings skipped:', seedErr);
               }
               return;
             }
@@ -517,7 +559,43 @@ export const dataService = {
     return LocalStoreManager.getInventoryMovements();
   },
 
-  // ORDERS
+  // ORDERS - REAL-TIME SUBSCRIPTION
+  subscribeOrders(callback: (orders: Order[]) => void, onError?: (err: any) => void): Unsubscribe {
+    if (isFirebaseConfigured() && db) {
+      try {
+        const q = query(collection(db, 'orders'), orderBy('created_at', 'desc'), limit(100));
+        return onSnapshot(
+          q,
+          (snap) => {
+            const list: Order[] = [];
+            snap.forEach(d => {
+              list.push({ id: d.id, ...d.data() } as Order);
+            });
+            callback(list);
+          },
+          (err) => {
+            console.error('Firestore orders onSnapshot error:', err);
+            onError?.(err);
+            callback(LocalStoreManager.getOrders());
+          }
+        );
+      } catch (err) {
+        console.error('Error subscribing to orders:', err);
+        onError?.(err);
+      }
+    }
+
+    callback(LocalStoreManager.getOrders());
+    const handler = () => {
+      callback(LocalStoreManager.getOrders());
+    };
+    window.addEventListener('storage', handler);
+    return () => {
+      window.removeEventListener('storage', handler);
+    };
+  },
+
+  // ORDERS - PLACE ATOMIC ORDER
   async placeOrderAtomic(
     customerData: CheckoutCustomerData,
     items: { product_id: string; quantity: number }[],
@@ -527,7 +605,17 @@ export const dataService = {
       try {
         const productsSnap = await getDocs(collection(db, 'products'));
         const products: Product[] = [];
-        productsSnap.forEach(d => products.push({ id: d.id, ...d.data() } as Product));
+        productsSnap.forEach(d => {
+          const p = { id: d.id, ...d.data() } as Product;
+          if (!UNWANTED_PRODUCT_IDS.has(p.id)) {
+            products.push(p);
+          }
+        });
+
+        // If products in Firestore are empty, fall back to local catalog
+        if (products.length === 0) {
+          products.push(...LocalStoreManager.getProducts());
+        }
 
         const settingsSnap = await getDoc(doc(db, 'store_settings', 'default'));
         const settings: StoreSettings = settingsSnap.exists()
@@ -536,21 +624,25 @@ export const dataService = {
 
         // Idempotency check
         if (idempotencyKey) {
-          const qIdemp = query(collection(db, 'orders'), where('idempotency_key', '==', idempotencyKey), limit(1));
-          const idempSnap = await getDocs(qIdemp);
-          if (!idempSnap.empty) {
-            const existing = idempSnap.docs[0].data() as Order;
-            return {
-              success: true,
-              order_id: idempSnap.docs[0].id,
-              order_number: existing.order_number,
-              total_bags: existing.total_bags,
-              subtotal_amount: existing.subtotal_amount,
-              delivery_fee: existing.delivery_fee,
-              total_amount: existing.total_amount,
-              status: existing.status,
-              message: 'Existing order returned via idempotency key.',
-            };
+          try {
+            const qIdemp = query(collection(db, 'orders'), where('idempotency_key', '==', idempotencyKey), limit(1));
+            const idempSnap = await getDocs(qIdemp);
+            if (!idempSnap.empty) {
+              const existing = idempSnap.docs[0].data() as Order;
+              return {
+                success: true,
+                order_id: idempSnap.docs[0].id,
+                order_number: existing.order_number,
+                total_bags: existing.total_bags,
+                subtotal_amount: existing.subtotal_amount,
+                delivery_fee: existing.delivery_fee,
+                total_amount: existing.total_amount,
+                status: existing.status,
+                message: 'Existing order returned via idempotency key.',
+              };
+            }
+          } catch (idempErr) {
+            console.warn('Idempotency query error:', idempErr);
           }
         }
 
@@ -560,28 +652,31 @@ export const dataService = {
 
         let totalBags = 0;
         let subtotalAmount = 0;
-        const orderItems: any[] = [];
+        const newOrderId = `ord-${Date.now()}`;
+        const newOrderNumber = generateMockOrderNumber();
+        const orderItems: OrderItem[] = [];
 
         for (const item of items) {
-          const prod = products.find(p => p.id === item.product_id);
+          const prod = products.find(p => p.id === item.product_id) || LocalStoreManager.getProductById(item.product_id);
           if (!prod) throw new Error(`Product not found: ${item.product_id}`);
           if (!prod.is_active) throw new Error(`Product "${prod.name}" is discontinued.`);
           if (prod.available_stock < item.quantity) {
             throw new Error(`Insufficient stock for "${prod.name}". Available: ${prod.available_stock} bags, Requested: ${item.quantity} bags.`);
           }
           totalBags += item.quantity;
-          subtotalAmount += prod.price * item.quantity;
+          const lineTotal = prod.price * item.quantity;
+          subtotalAmount += lineTotal;
           orderItems.push({
             id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-            order_id: '',
+            order_id: newOrderId,
             product_id: prod.id,
             product_name: prod.name,
-            product_code: prod.sku || '',
-            category_name: prod.category_id,
+            brand: prod.brand || 'Radhe Krishna (Krishna Agrovet)',
             bag_weight_kg: prod.bag_weight_kg || 50,
+            unit_price: prod.price,
             quantity: item.quantity,
-            price_per_bag: prod.price,
-            total_price: prod.price * item.quantity,
+            line_total: lineTotal,
+            created_at: new Date().toISOString(),
           });
         }
 
@@ -589,10 +684,6 @@ export const dataService = {
           ? totalBags * settings.delivery_fee_per_bag
           : 0;
         const totalAmount = subtotalAmount + deliveryFee;
-        const newOrderId = `ord-${Date.now()}`;
-        const newOrderNumber = generateMockOrderNumber();
-
-        orderItems.forEach(it => { it.order_id = newOrderId; });
 
         const newOrder: Order = {
           id: newOrderId,
@@ -619,32 +710,42 @@ export const dataService = {
           items: orderItems,
         };
 
+        // 1. Save Order document into Firestore
         await setDoc(doc(db, 'orders', newOrderId), newOrder);
 
-        // Deduct inventory in Firestore
+        // 2. Adjust product stock & inventory movements in Firestore (best effort)
         for (const item of items) {
           const prod = products.find(p => p.id === item.product_id)!;
           const newStock = Math.max(0, prod.available_stock - item.quantity);
-          await updateDoc(doc(db, 'products', prod.id), {
-            available_stock: newStock,
-            updated_at: new Date().toISOString(),
-          });
+          try {
+            await updateDoc(doc(db, 'products', prod.id), {
+              available_stock: newStock,
+              updated_at: new Date().toISOString(),
+            });
+          } catch (stkErr) {
+            console.warn('Could not update product stock in Firestore:', stkErr);
+          }
 
-          const movId = `mov-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-          await setDoc(doc(db, 'inventory_movements', movId), {
-            id: movId,
-            product_id: prod.id,
-            product_name: prod.name,
-            change_quantity: -item.quantity,
-            previous_stock: prod.available_stock,
-            new_stock: newStock,
-            reason: 'order_sale',
-            order_id: newOrderId,
-            notes: `Reserved for order ${newOrderNumber}`,
-            created_at: new Date().toISOString(),
-          });
+          try {
+            const movId = `mov-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+            await setDoc(doc(db, 'inventory_movements', movId), {
+              id: movId,
+              product_id: prod.id,
+              product_name: prod.name,
+              change_quantity: -item.quantity,
+              previous_stock: prod.available_stock,
+              new_stock: newStock,
+              reason: 'order_sale',
+              order_id: newOrderId,
+              notes: `Reserved for order ${newOrderNumber}`,
+              created_at: new Date().toISOString(),
+            });
+          } catch (movErr) {
+            console.warn('Could not record inventory movement in Firestore:', movErr);
+          }
         }
 
+        // Also record in local store so local offline cache is in sync
         LocalStoreManager.placeOrderAtomic(customerData, items, idempotencyKey);
 
         return {
@@ -656,9 +757,9 @@ export const dataService = {
           delivery_fee: deliveryFee,
           total_amount: totalAmount,
           status: 'pending',
-          message: 'Order created and stock reserved successfully in Firestore.',
+          message: 'Order created and saved successfully in Firestore.',
         };
-      } catch (err) {
+      } catch (err: any) {
         console.error('Firestore placeOrderAtomic fallback:', err);
         return LocalStoreManager.placeOrderAtomic(customerData, items, idempotencyKey);
       }
@@ -765,13 +866,15 @@ export const dataService = {
     if (!isFirebaseConfigured() || !db) {
       return {
         success: false,
-        message: 'Firebase configuration is incomplete. Please provide API Key and Project ID.',
+        message: 'Firebase configuration is incomplete. Please check VITE_FIREBASE_API_KEY and VITE_FIREBASE_PROJECT_ID in .env.',
         projectId: null,
       };
     }
 
+    const cfg = getFirebaseConfig();
+
     try {
-      // Test read/write to _ping doc
+      // 1. Test ping write/read
       const pingDoc = doc(db, '_connection_test', 'status');
       await setDoc(pingDoc, {
         timestamp: new Date().toISOString(),
@@ -780,20 +883,29 @@ export const dataService = {
 
       const snap = await getDoc(pingDoc);
       if (snap.exists()) {
-        const cfg = getFirebaseConfig();
         return {
           success: true,
-          message: `Successfully connected to Cloud Firestore (Project: ${cfg.projectId})! Real-time streaming is active.`,
+          message: `Successfully connected to Cloud Firestore (Project: ${cfg.projectId})! Real-time streaming and data operations active.`,
           projectId: cfg.projectId,
         };
       }
-      throw new Error('Could not read test document back from Firestore.');
+      throw new Error('Test document was written but could not be read back.');
     } catch (err: any) {
-      return {
-        success: false,
-        message: err.message || 'Failed to connect to Cloud Firestore. Check security rules or project permissions.',
-        projectId: getFirebaseConfig().projectId || null,
-      };
+      // If ping write failed due to security rules, test read-only on store_settings
+      try {
+        await getDoc(doc(db, 'store_settings', 'default'));
+        return {
+          success: true,
+          message: `Connected to Cloud Firestore (Project: ${cfg.projectId}) in Read mode (write restricted by security rules).`,
+          projectId: cfg.projectId,
+        };
+      } catch (readErr: any) {
+        return {
+          success: false,
+          message: `Firestore connection error: ${err.message || 'Check project ID, API key, and security rules.'}`,
+          projectId: cfg.projectId || null,
+        };
+      }
     }
   }
 };

@@ -130,6 +130,26 @@ const UNWANTED_PRODUCT_IDS = new Set([
 ]);
 
 /**
+ * Recursively removes any object keys whose values are `undefined`,
+ * which Firestore strictly rejects during setDoc / updateDoc operations.
+ */
+export function sanitizeFirestorePayload<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizeFirestorePayload(item)) as unknown as T;
+  }
+  const cleaned: Record<string, any> = {};
+  for (const [key, val] of Object.entries(obj)) {
+    if (val !== undefined) {
+      cleaned[key] = typeof val === 'object' && val !== null ? sanitizeFirestorePayload(val) : val;
+    }
+  }
+  return cleaned as T;
+}
+
+/**
  * Normalizes raw Firestore document data to handle any schema variations:
  * - name vs title vs product_name
  * - is_active (defaults to true if omitted!)
@@ -352,42 +372,52 @@ export const dataService = {
   },
 
   async saveProduct(product: Partial<Product> & { name: string; brand: string; price?: number }): Promise<Product> {
-    if (isFirebaseConfigured() && db) {
-      const prodId = product.id || `prod_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-      const docRef = doc(db, 'products', prodId);
-      
-      const payload: any = {
-        name: product.name,
-        brand: product.brand,
-        sku: product.sku || `KAV-${Date.now().toString().slice(-6)}`,
-        category_id: product.category_id || 'cat-1',
-        bag_weight_kg: Number(product.bag_weight_kg) || 50,
-        price: Number(product.price || 0),
-        mrp: product.mrp ? Number(product.mrp) : undefined,
-        available_stock: Number(product.available_stock) || 0,
-        low_stock_threshold: Number(product.low_stock_threshold) || 10,
-        description: product.description || '',
-        short_description: product.short_description || '',
-        image_url: product.image_url || '/images/products/radhe-krishna-bypass-50kg.svg',
-        is_active: product.is_active !== undefined ? product.is_active : true,
-        featured: !!product.featured,
-        nutritional_info: product.nutritional_info || {},
-        feeding_guide: product.feeding_guide || '',
-        features: product.features || [],
-        ingredients: product.ingredients || [],
-        packaging_info: product.packaging_info || undefined,
-        updated_at: new Date().toISOString(),
-      };
+    const prodId = product.id || `prod_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    
+    const rawPayload: any = {
+      name: (product.name || 'Radhe Krishna Cattle Feed').trim(),
+      brand: (product.brand || 'Radhe Krishna (Krishna Agrovet)').trim(),
+      sku: product.sku || `KAV-${Date.now().toString().slice(-6)}`,
+      category_id: product.category_id || 'cat-1',
+      bag_weight_kg: Number(product.bag_weight_kg) || 50,
+      price: Number(product.price || 0),
+      available_stock: Number(product.available_stock !== undefined ? product.available_stock : 50),
+      low_stock_threshold: Number(product.low_stock_threshold !== undefined ? product.low_stock_threshold : 10),
+      description: product.description || '',
+      short_description: product.short_description || '',
+      image_url: product.image_url || '/images/products/radhe-krishna-bypass-50kg.svg',
+      is_active: product.is_active !== undefined ? Boolean(product.is_active) : true,
+      featured: Boolean(product.featured),
+      nutritional_info: product.nutritional_info || {},
+      feeding_guide: product.feeding_guide || '',
+      features: Array.isArray(product.features) ? product.features : [],
+      ingredients: Array.isArray(product.ingredients) ? product.ingredients : [],
+      updated_at: new Date().toISOString(),
+    };
 
-      if (!product.id) {
-        payload.created_at = new Date().toISOString();
-      }
-
-      await setDoc(docRef, payload, { merge: true });
-      LocalStoreManager.saveProduct({ ...payload, id: prodId });
-      return { id: prodId, ...payload } as Product;
+    if (product.mrp !== undefined && product.mrp !== null && !isNaN(Number(product.mrp))) {
+      rawPayload.mrp = Number(product.mrp);
     }
-    return LocalStoreManager.saveProduct(product);
+    if (product.packaging_info) {
+      rawPayload.packaging_info = product.packaging_info;
+    }
+    if (!product.id) {
+      rawPayload.created_at = new Date().toISOString();
+    }
+
+    const payload = sanitizeFirestorePayload(rawPayload);
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        const docRef = doc(db, 'products', prodId);
+        await setDoc(docRef, payload, { merge: true });
+      } catch (cloudErr) {
+        console.error('Failed to write product to Firestore, saving locally:', cloudErr);
+      }
+    }
+
+    const saved = LocalStoreManager.saveProduct({ ...payload, id: prodId });
+    return saved;
   },
 
   async toggleProductActive(id: string): Promise<Product> {
@@ -572,15 +602,18 @@ export const dataService = {
   },
 
   async updateSettings(settings: Partial<StoreSettings>): Promise<StoreSettings> {
+    const current = await this.getSettings();
+    const updated = sanitizeFirestorePayload({ ...current, ...settings, updated_at: new Date().toISOString() });
     if (isFirebaseConfigured() && db) {
-      const docRef = doc(db, 'store_settings', 'default');
-      const current = await this.getSettings();
-      const updated = { ...current, ...settings, updated_at: new Date().toISOString() };
-      await setDoc(docRef, updated, { merge: true });
-      LocalStoreManager.updateSettings(settings);
-      return updated;
+      try {
+        const docRef = doc(db, 'store_settings', 'default');
+        await setDoc(docRef, updated, { merge: true });
+      } catch (err) {
+        console.error('Failed to update store settings in Firestore:', err);
+      }
     }
-    return LocalStoreManager.updateSettings(settings);
+    LocalStoreManager.updateSettings(settings);
+    return updated;
   },
 
   // INVENTORY ADJUSTMENT & AUDIT LOGS

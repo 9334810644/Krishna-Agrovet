@@ -80,6 +80,8 @@ export const AdminLoginPage: React.FC = () => {
             <img
               src="/images/krishna-agrovet-logo.png"
               alt="Krishna Agrovet Logo"
+              loading="eager"
+              decoding="sync"
               className="w-full h-full object-contain"
             />
           </div>

@@ -66,7 +66,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
       : `Namaste ${settings.business_name}, I want to ask about ${product.name} availability and doorstep farm delivery.`
   )}`;
 
-  const relatedProducts = allProducts.filter(p => p.id !== product.id && p.is_active).slice(0, 3);
+  const relatedProducts = allProducts.filter(p => p.id !== product.id && p.is_active !== false).slice(0, 3);
 
   const handleIncrement = () => {
     if (quantity < remainingStock) {

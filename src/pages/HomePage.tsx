@@ -28,7 +28,21 @@ export const HomePage: React.FC<HomePageProps> = ({ searchQuery = '' }) => {
       setCategories(cats);
     });
 
+    // Safety timeout: ensure loading state never hangs indefinitely
+    const safetyTimer = setTimeout(async () => {
+      setLoading(false);
+      try {
+        const prods = await dataService.getProducts();
+        if (prods.length > 0) {
+          setProducts(prev => prev.length === 0 ? prods : prev);
+        }
+      } catch {
+        // ignore
+      }
+    }, 2500);
+
     return () => {
+      clearTimeout(safetyTimer);
       if (typeof unsubProducts === 'function') unsubProducts();
       if (typeof unsubCategories === 'function') unsubCategories();
     };

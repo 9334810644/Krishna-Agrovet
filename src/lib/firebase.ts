@@ -21,13 +21,29 @@ export interface FirebaseConnectionConfig {
   measurementId?: string;
 }
 
+// Built-in production Firebase credentials for Krishna Agrovet
+// Guarantees reliable connection on both laptop and mobile, including Netlify deployments where .env is omitted
+const DEFAULT_FIREBASE_CONFIG: FirebaseConnectionConfig = {
+  apiKey: "AIzaSyBmt8QSPWs7deT3VgosM8f_NR3DBOtLxgw",
+  authDomain: "krishna-agrovet.firebaseapp.com",
+  projectId: "krishna-agrovet",
+  storageBucket: "krishna-agrovet.firebasestorage.app",
+  messagingSenderId: "730673305520",
+  appId: "1:730673305520:web:a25e472dc196d90e34e875",
+  measurementId: "G-JWQ62BTNV5",
+};
+
 export const getFirebaseConfig = (): FirebaseConnectionConfig => {
   let customConfig: Partial<FirebaseConnectionConfig> = {};
   if (typeof window !== 'undefined') {
     try {
       const stored = localStorage.getItem('kav_firebase_config');
       if (stored) {
-        customConfig = JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        // Only accept custom config if it has valid credentials
+        if (parsed && typeof parsed.apiKey === 'string' && parsed.apiKey.length > 5 && parsed.projectId) {
+          customConfig = parsed;
+        }
       }
     } catch {
       // ignore
@@ -35,13 +51,13 @@ export const getFirebaseConfig = (): FirebaseConnectionConfig => {
   }
 
   return {
-    apiKey: (customConfig.apiKey || import.meta.env.VITE_FIREBASE_API_KEY || '').trim(),
-    authDomain: (customConfig.authDomain || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '').trim(),
-    projectId: (customConfig.projectId || import.meta.env.VITE_FIREBASE_PROJECT_ID || '').trim(),
-    storageBucket: (customConfig.storageBucket || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '').trim(),
-    messagingSenderId: (customConfig.messagingSenderId || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '').trim(),
-    appId: (customConfig.appId || import.meta.env.VITE_FIREBASE_APP_ID || '').trim(),
-    measurementId: (customConfig.measurementId || import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || '').trim(),
+    apiKey: (customConfig.apiKey || import.meta.env.VITE_FIREBASE_API_KEY || DEFAULT_FIREBASE_CONFIG.apiKey).trim(),
+    authDomain: (customConfig.authDomain || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || DEFAULT_FIREBASE_CONFIG.authDomain).trim(),
+    projectId: (customConfig.projectId || import.meta.env.VITE_FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_CONFIG.projectId).trim(),
+    storageBucket: (customConfig.storageBucket || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || DEFAULT_FIREBASE_CONFIG.storageBucket).trim(),
+    messagingSenderId: (customConfig.messagingSenderId || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || DEFAULT_FIREBASE_CONFIG.messagingSenderId).trim(),
+    appId: (customConfig.appId || import.meta.env.VITE_FIREBASE_APP_ID || DEFAULT_FIREBASE_CONFIG.appId).trim(),
+    measurementId: (customConfig.measurementId || import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || DEFAULT_FIREBASE_CONFIG.measurementId || '').trim(),
   };
 };
 
@@ -113,6 +129,71 @@ const UNWANTED_PRODUCT_IDS = new Set([
   'prod-8',
 ]);
 
+/**
+ * Normalizes raw Firestore document data to handle any schema variations:
+ * - name vs title vs product_name
+ * - is_active (defaults to true if omitted!)
+ * - image_url vs image vs imageUrl
+ * - stock vs available_stock
+ */
+export function normalizeProductDocument(id: string, data: any): Product {
+  const is_active = data.is_active !== undefined
+    ? Boolean(data.is_active)
+    : data.isActive !== undefined
+    ? Boolean(data.isActive)
+    : true; // Crucial: default to active if omitted in Firestore console!
+
+  const name = (data.name || data.title || data.product_name || 'Radhe Krishna Cattle Feed').trim();
+  const brand = (data.brand || 'Radhe Krishna (Krishna Agrovet)').trim();
+  const sku = (data.sku || data.product_code || `RKPA-${id.slice(-6)}`).trim();
+  const category_id = (data.category_id || data.categoryId || 'cat-1').trim();
+  const bag_weight_kg = Number(data.bag_weight_kg || data.bagWeight || data.weight || 50);
+  const price = Number(data.price || data.rate || data.unit_price || 0);
+  const mrp = data.mrp ? Number(data.mrp) : undefined;
+  const available_stock = Number(
+    data.available_stock !== undefined
+      ? data.available_stock
+      : data.stock !== undefined
+      ? data.stock
+      : 50
+  );
+  const low_stock_threshold = Number(data.low_stock_threshold || data.lowStockThreshold || 10);
+  const description = (data.description || data.desc || '').trim();
+  const short_description = (data.short_description || data.shortDescription || '').trim();
+  
+  let image_url = (data.image_url || data.image || data.imageUrl || data.photo_url || '').trim();
+  if (!image_url || image_url.includes('undefined')) {
+    image_url = name.toLowerCase().includes('ekstra')
+      ? '/images/products/radhe-krishna-ekstrapro-50kg.svg'
+      : '/images/products/radhe-krishna-bypass-50kg.svg';
+  }
+
+  return {
+    id,
+    name,
+    brand,
+    sku,
+    category_id,
+    bag_weight_kg,
+    price,
+    mrp,
+    available_stock,
+    low_stock_threshold,
+    description,
+    short_description,
+    image_url,
+    is_active,
+    featured: Boolean(data.featured !== undefined ? data.featured : true),
+    nutritional_info: data.nutritional_info || data.nutritionalInfo || {},
+    feeding_guide: data.feeding_guide || data.feedingGuide || '',
+    features: Array.isArray(data.features) ? data.features : [],
+    ingredients: Array.isArray(data.ingredients) ? data.ingredients : [],
+    packaging_info: data.packaging_info || data.packagingInfo || undefined,
+    created_at: data.created_at || data.createdAt || new Date().toISOString(),
+    updated_at: data.updated_at || data.updatedAt || new Date().toISOString(),
+  };
+}
+
 // ==============================================================================
 // UNIFIED DATA SERVICE (Cloud Firestore + Reactive Real-Time & Fallback)
 // ==============================================================================
@@ -122,11 +203,36 @@ export const dataService = {
   subscribeProducts(callback: (products: Product[]) => void, onError?: (err: any) => void): Unsubscribe {
     if (isFirebaseConfigured() && db) {
       try {
+        // Query products collection
         const unsubscribe = onSnapshot(
           collection(db, 'products'),
           async (snapshot) => {
             if (snapshot.empty) {
-              // Immediately deliver local initial products so the page never renders blank!
+              // Also check 'Products' capitalized collection in case user created it capitalized in Firebase console
+              try {
+                const capSnap = await getDocs(collection(db, 'Products'));
+                if (!capSnap.empty) {
+                  const capList: Product[] = [];
+                  capSnap.forEach(d => {
+                    if (!UNWANTED_PRODUCT_IDS.has(d.id)) {
+                      capList.push(normalizeProductDocument(d.id, d.data()));
+                    }
+                  });
+                  if (capList.length > 0) {
+                    capList.sort((a, b) => {
+                      if (a.featured && !b.featured) return -1;
+                      if (!a.featured && b.featured) return 1;
+                      return (a.name || '').localeCompare(b.name || '');
+                    });
+                    callback(capList);
+                    return;
+                  }
+                }
+              } catch {
+                // ignore
+              }
+
+              // Deliver local authentic products immediately so laptop never renders blank!
               const initial = LocalStoreManager.getProducts();
               callback(initial);
 
@@ -147,9 +253,8 @@ export const dataService = {
 
             const list: Product[] = [];
             snapshot.forEach((d) => {
-              const p = { id: d.id, ...d.data() } as Product;
-              if (!UNWANTED_PRODUCT_IDS.has(p.id)) {
-                list.push(p);
+              if (!UNWANTED_PRODUCT_IDS.has(d.id)) {
+                list.push(normalizeProductDocument(d.id, d.data()));
               }
             });
 
@@ -199,13 +304,16 @@ export const dataService = {
   async getProducts(): Promise<Product[]> {
     if (isFirebaseConfigured() && db) {
       try {
-        const snap = await getDocs(collection(db, 'products'));
+        let snap = await getDocs(collection(db, 'products'));
+        if (snap.empty) {
+          snap = await getDocs(collection(db, 'Products'));
+        }
+
         if (!snap.empty) {
           const list: Product[] = [];
           snap.forEach(d => {
-            const p = { id: d.id, ...d.data() } as Product;
-            if (!UNWANTED_PRODUCT_IDS.has(p.id)) {
-              list.push(p);
+            if (!UNWANTED_PRODUCT_IDS.has(d.id)) {
+              list.push(normalizeProductDocument(d.id, d.data()));
             }
           });
           if (list.length > 0) {
@@ -227,10 +335,14 @@ export const dataService = {
   async getProductById(id: string): Promise<Product | null> {
     if (isFirebaseConfigured() && db) {
       try {
-        const docRef = doc(db, 'products', id);
-        const snap = await getDoc(docRef);
+        let docRef = doc(db, 'products', id);
+        let snap = await getDoc(docRef);
+        if (!snap.exists()) {
+          docRef = doc(db, 'Products', id);
+          snap = await getDoc(docRef);
+        }
         if (snap.exists()) {
-          return { id: snap.id, ...snap.data() } as Product;
+          return normalizeProductDocument(snap.id, snap.data());
         }
       } catch (err) {
         console.error('Firestore getProductById error:', err);
@@ -365,7 +477,10 @@ export const dataService = {
   async getCategories(): Promise<Category[]> {
     if (isFirebaseConfigured() && db) {
       try {
-        const snap = await getDocs(collection(db, 'categories'));
+        let snap = await getDocs(collection(db, 'categories'));
+        if (snap.empty) {
+          snap = await getDocs(collection(db, 'Categories'));
+        }
         if (!snap.empty) {
           const list: Category[] = [];
           snap.forEach(d => {
@@ -477,8 +592,12 @@ export const dataService = {
   ): Promise<Product> {
     if (isFirebaseConfigured() && db) {
       return await runTransaction(db, async (transaction) => {
-        const pRef = doc(db, 'products', productId);
-        const pSnap = await transaction.get(pRef);
+        let pRef = doc(db, 'products', productId);
+        let pSnap = await transaction.get(pRef);
+        if (!pSnap.exists()) {
+          pRef = doc(db, 'Products', productId);
+          pSnap = await transaction.get(pRef);
+        }
         if (!pSnap.exists()) throw new Error('Product not found in Firestore');
 
         const currentStock = pSnap.data().available_stock || 0;
@@ -603,12 +722,15 @@ export const dataService = {
   ): Promise<AtomicOrderResult> {
     if (isFirebaseConfigured() && db) {
       try {
-        const productsSnap = await getDocs(collection(db, 'products'));
+        let productsSnap = await getDocs(collection(db, 'products'));
+        if (productsSnap.empty) {
+          productsSnap = await getDocs(collection(db, 'Products'));
+        }
+
         const products: Product[] = [];
         productsSnap.forEach(d => {
-          const p = { id: d.id, ...d.data() } as Product;
-          if (!UNWANTED_PRODUCT_IDS.has(p.id)) {
-            products.push(p);
+          if (!UNWANTED_PRODUCT_IDS.has(d.id)) {
+            products.push(normalizeProductDocument(d.id, d.data()));
           }
         });
 
@@ -659,7 +781,7 @@ export const dataService = {
         for (const item of items) {
           const prod = products.find(p => p.id === item.product_id) || LocalStoreManager.getProductById(item.product_id);
           if (!prod) throw new Error(`Product not found: ${item.product_id}`);
-          if (!prod.is_active) throw new Error(`Product "${prod.name}" is discontinued.`);
+          if (prod.is_active === false) throw new Error(`Product "${prod.name}" is discontinued.`);
           if (prod.available_stock < item.quantity) {
             throw new Error(`Insufficient stock for "${prod.name}". Available: ${prod.available_stock} bags, Requested: ${item.quantity} bags.`);
           }
@@ -866,7 +988,7 @@ export const dataService = {
     if (!isFirebaseConfigured() || !db) {
       return {
         success: false,
-        message: 'Firebase configuration is incomplete. Please check VITE_FIREBASE_API_KEY and VITE_FIREBASE_PROJECT_ID in .env.',
+        message: 'Firebase configuration is incomplete. Please check VITE_FIREBASE_API_KEY and VITE_FIREBASE_PROJECT_ID.',
         projectId: null,
       };
     }
@@ -891,12 +1013,12 @@ export const dataService = {
       }
       throw new Error('Test document was written but could not be read back.');
     } catch (err: any) {
-      // If ping write failed due to security rules, test read-only on store_settings
+      // If ping write failed due to security rules, test read-only on store_settings or products
       try {
         await getDoc(doc(db, 'store_settings', 'default'));
         return {
           success: true,
-          message: `Connected to Cloud Firestore (Project: ${cfg.projectId}) in Read mode (write restricted by security rules).`,
+          message: `Connected to Cloud Firestore (Project: ${cfg.projectId}) in Read mode.`,
           projectId: cfg.projectId,
         };
       } catch (readErr: any) {

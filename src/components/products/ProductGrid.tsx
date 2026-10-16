@@ -27,15 +27,16 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   const filteredProducts = useMemo(() => {
     return products
       .filter(p => {
-        if (!p.is_active) return false;
+        // Only hide if explicitly deactivated
+        if (p.is_active === false) return false;
 
         // Search query
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
-          const matchName = p.name.toLowerCase().includes(q);
-          const matchBrand = p.brand?.toLowerCase().includes(q);
-          const matchDesc = p.description?.toLowerCase().includes(q);
-          const matchSku = p.sku?.toLowerCase().includes(q);
+          const matchName = (p.name || '').toLowerCase().includes(q);
+          const matchBrand = (p.brand || '').toLowerCase().includes(q);
+          const matchDesc = (p.description || '').toLowerCase().includes(q);
+          const matchSku = (p.sku || '').toLowerCase().includes(q);
           if (!matchName && !matchBrand && !matchDesc && !matchSku) return false;
         }
 

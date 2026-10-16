@@ -16,7 +16,6 @@ interface AuthContextType {
   isAdmin: boolean;
   isDemoMode: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  loginAsDemoAdmin: () => void;
   logout: () => Promise<void>;
 }
 
@@ -205,37 +204,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    // Secondary demo credentials
-    if (
-      (cleanEmail === 'admin@krishnaagrovet.com' || cleanEmail === 'admin') &&
-      password === 'admin123'
-    ) {
-      const demoUser: UserProfile = {
-        id: 'usr-demo-admin-01',
-        email: 'krishnaagrovet@gmail.com',
-        full_name: 'Krishna Agrovet Store Owner',
-        role: 'admin',
-      };
-      sessionStorage.setItem(DEMO_AUTH_STORAGE_KEY, JSON.stringify(demoUser));
-      setUser(demoUser);
-      return { success: true };
-    }
-
     return {
       success: false,
-      error: 'Invalid credentials. Please use email: krishnaagrovet@gmail.com and password: Krishna@169#',
+      error: 'Invalid credentials. Please enter a valid administrator email and password.',
     };
-  };
-
-  const loginAsDemoAdmin = () => {
-    const ownerUser: UserProfile = {
-      id: 'usr-krishna-agrovet-owner',
-      email: 'krishnaagrovet@gmail.com',
-      full_name: 'Krishna Agrovet Store Owner',
-      role: 'admin',
-    };
-    sessionStorage.setItem(DEMO_AUTH_STORAGE_KEY, JSON.stringify(ownerUser));
-    setUser(ownerUser);
   };
 
   const logout = async () => {
@@ -254,7 +226,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: user?.role === 'admin',
         isDemoMode: isDemo,
         login,
-        loginAsDemoAdmin,
         logout,
       }}
     >

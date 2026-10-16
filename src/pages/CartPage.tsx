@@ -5,7 +5,7 @@ import { useStoreSettings } from '../context/StoreSettingsContext';
 import { useLanguage } from '../context/LanguageContext';
 import { 
   ShoppingBag, Trash2, Plus, Minus, ArrowRight, 
-  Truck, Scale, ShieldCheck, ArrowLeft, MessageCircle 
+  Truck, Scale, ArrowLeft, MessageCircle 
 } from 'lucide-react';
 import { createCartWhatsAppUrl } from '../lib/whatsapp';
 
@@ -196,37 +196,25 @@ export const CartPage: React.FC = () => {
                     व्हाट्सएप पर चर्चा / Rate on WhatsApp
                   </span>
                 </div>
-
-                <div className="pt-2">
-                  <div className="bg-warm-cream border border-warm-cream-dark rounded-2xl p-4 space-y-1.5 text-xs text-deep-charcoal">
-                    <div className="flex items-center gap-2 font-black text-krishna-red text-xs uppercase tracking-wide">
-                      <ShieldCheck className="w-4 h-4 text-krishna-red" />
-                      <span>Cash on Delivery (COD)</span>
-                    </div>
-                    <p className="text-charcoal-muted text-[11px] leading-relaxed">
-                      Payment is collected when the delivery vehicle unloads the cattle feed sacks at your dairy shed.
-                    </p>
-                  </div>
-                </div>
               </div>
 
-              <div className="pt-2 space-y-3">
-                <Link
-                  to="/checkout"
-                  className="w-full flex items-center justify-center gap-2.5 py-4 px-4 bg-brand-yellow hover:bg-brand-yellow-light text-deep-charcoal font-black text-base rounded-2xl shadow-md transition-all active:scale-98 border-2 border-brand-yellow-dark"
-                >
-                  <span>{t('proceedCheckout')}</span>
-                  <ArrowRight className="w-5 h-5 text-deep-charcoal" />
-                </Link>
+              {/* Notice for new customers */}
+              <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl text-center">
+                <p className="text-xs sm:text-sm font-bold text-amber-950 leading-relaxed">
+                  {t('newCustomerNotice')}
+                </p>
+              </div>
 
+              {/* Single WhatsApp Order Button */}
+              <div className="pt-1">
                 <a
                   href={cartWhatsAppUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-warm-cream hover:bg-warm-cream-dark border border-warm-cream-dark text-deep-charcoal font-bold text-xs rounded-xl transition-colors"
+                  className="w-full flex items-center justify-center gap-2.5 py-4 px-4 bg-[#25D366] hover:bg-[#20ba5a] active:scale-98 text-white font-black text-base sm:text-lg rounded-2xl shadow-md transition-all duration-200"
                 >
-                  <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                  <span>{t('directWhatsAppInquiry')}</span>
+                  <MessageCircle className="w-5 h-5 fill-white text-[#25D366]" />
+                  <span>{t('placeOrderViaWhatsApp')}</span>
                 </a>
               </div>
 

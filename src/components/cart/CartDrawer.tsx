@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -194,38 +193,32 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              {/* Main Checkout Button */}
-              <Link
-                to="/checkout"
-                onClick={onClose}
-                className="w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-brand-yellow hover:bg-brand-yellow-light text-deep-charcoal font-black text-sm rounded-xl shadow-md transition-all active:scale-98 border-2 border-brand-yellow-dark"
-              >
-                <span>{t('proceedCheckout')}</span>
-                <ArrowRight className="w-4 h-4 text-deep-charcoal" />
-              </Link>
+              {/* Notice for new customers */}
+              <div className="p-3 bg-amber-50/90 border border-amber-200 rounded-xl text-center">
+                <p className="text-xs font-bold text-amber-950 leading-snug">
+                  {t('newCustomerNotice')}
+                </p>
+              </div>
 
-              {/* Direct WhatsApp button */}
+              {/* Single WhatsApp Order Button */}
               <a
                 href={cartWhatsAppUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-warm-cream hover:bg-warm-cream-dark text-deep-charcoal font-bold text-xs rounded-xl border border-warm-cream-dark transition-colors"
+                className="w-full flex items-center justify-center gap-2.5 py-3.5 px-4 bg-[#25D366] hover:bg-[#20ba5a] active:scale-98 text-white font-black text-sm rounded-xl shadow-md transition-all duration-200"
               >
-                <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                <span>{t('directWhatsAppInquiry')}</span>
+                <MessageCircle className="w-5 h-5 fill-white text-[#25D366]" />
+                <span>{t('placeOrderViaWhatsApp')}</span>
               </a>
 
-              <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center justify-center pt-1">
                 <button
                   type="button"
                   onClick={clearCart}
-                  className="text-[11px] font-bold text-charcoal-muted hover:text-krishna-red transition-colors"
+                  className="text-[11px] font-bold text-charcoal-muted hover:text-krishna-red transition-colors cursor-pointer"
                 >
                   {t('clearCart')}
                 </button>
-                <span className="text-[11px] font-bold text-krishna-red">
-                  Payment: Cash on Delivery (COD)
-                </span>
               </div>
 
             </div>

@@ -30,43 +30,31 @@ export function createCartWhatsAppUrl(
   const isHindi = lang === 'hi';
 
   const itemsText = items
-    .map((item, idx) => {
+    .map((item) => {
+      const cleanName = item.product.name.replace(/^Radhe\s+Krishna\s+/i, '').trim() || item.product.name;
       const weight = item.product.bag_weight_kg || 50;
-      if (isHindi) {
-        return `${idx + 1}. *${item.product.name}*\n   ${weight} किग्रा बोरी | मात्रा: *${item.quantity} बैग* (${item.quantity * weight} किग्रा)`;
-      }
-      return `${idx + 1}. *${item.product.name}*\n   ${weight}kg Sack | Qty: *${item.quantity} Bags* (${item.quantity * weight} kg)`;
+      return `${cleanName} - ${item.quantity} bag (${weight}kg)`;
     })
     .join('\n');
 
   if (isHindi) {
-    const message = `🌾 *पशु आहार पूछताछ* 🌾
-*${businessName.toUpperCase()} (कृष्णा एग्रोवेट)*
+    const message = `*${businessName} - ऑर्डर पूछताछ*
 
-नमस्ते, मैं अपनी डेयरी के लिए निम्नलिखित पशु आहार बोरियों के ऑर्डर और डिलीवरी के संबंध में चर्चा करना चाहता हूं:
-
-📦 *चयनित उत्पाद:*
 ${itemsText}
 
-📊 *कुल बोरियां:* *${totalBags} बैग* (${totalWeightKg} किग्रा)
-💰 *कीमत / भाव:* व्हाट्सएप पर चर्चा
-कृपया आज का डिस्काउंट भाव, टेम्पो डिलीवरी और डिस्पैच का समय बताएं।`;
+*कुल:* ${totalBags} बैग (${totalWeightKg.toLocaleString('en-IN')} किग्रा)
+कृपया आज का भाव व डिलीवरी का समय बताएं।`;
 
     return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
   }
 
   // English version
-  const message = `🌾 *CATTLE FEED INQUIRY* 🌾
-*${businessName.toUpperCase()} (KRISHNA AGROVET)*
+  const message = `*${businessName} - Order Inquiry*
 
-Hello, I would like to inquire about ordering and doorstep delivery of the following cattle feed sacks for my dairy farm:
-
-📦 *Selected Products:*
 ${itemsText}
 
-📊 *Total Sacks:* *${totalBags} Bags* (${totalWeightKg} kg)
-💰 *Price / Rate:* Rate on WhatsApp
-Please share today's wholesale rate, tempo delivery schedule, and dispatch timing.`;
+*Total:* ${totalBags} bags (${totalWeightKg.toLocaleString('en-IN')} kg)
+Please share today's rate & delivery schedule.`;
 
   return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
 }
@@ -82,12 +70,10 @@ export function formatOrderWhatsAppMessage(
   const isHindi = lang === 'hi';
 
   const itemsText = (order.items || [])
-    .map((item, index) => {
+    .map((item) => {
+      const cleanName = item.product_name.replace(/^Radhe\s+Krishna\s+/i, '').trim() || item.product_name;
       const weight = item.bag_weight_kg || 50;
-      if (isHindi) {
-        return `${index + 1}. *${item.product_name}*\n   ${weight} किग्रा बोरी | मात्रा: *${item.quantity} बैग* (${item.quantity * weight} किग्रा)`;
-      }
-      return `${index + 1}. *${item.product_name}*\n   ${weight}kg Sack | Qty: *${item.quantity} Bags* (${item.quantity * weight} kg)`;
+      return `${cleanName} - ${item.quantity} bag (${weight}kg)`;
     })
     .join('\n');
 
@@ -100,38 +86,18 @@ export function formatOrderWhatsAppMessage(
       minute: '2-digit',
     });
 
-    const paymentText = order.payment_method === 'cash_on_delivery'
-      ? 'डिलीवरी पर नकद (Cash on Delivery)'
-      : order.payment_method;
+    return `*${businessName} - नया ऑर्डर*
 
-    return `🌾 *नया पशु आहार ऑर्डर* 🌾
-*${businessName.toUpperCase()} (कृष्णा एग्रोवेट)*
+📋 *ऑर्डर संख्या:* #${order.order_number}
+📅 *दिनांक:* ${formattedDate}
 
-📋 *ऑर्डर संख्या (Order ID):* ${order.order_number}
-📅 *दिनांक व समय:* ${formattedDate}
-
-👤 *किसान / ग्राहक विवरण:*
-• नाम: *${order.customer_name}*
-• मोबाइल नंबर: *${order.customer_phone}*
-• गांव / कस्बा: *${order.village_town}*
-• पहचान चिन्ह (Landmark): ${order.landmark || 'उल्लेखित नहीं'}
-• पूरा पता: ${order.full_address}
-• पिन कोड: ${order.pincode}
-• जिला व राज्य: ${order.district}, ${order.state}
-${order.delivery_notes ? `• डिलीवरी निर्देश: _"${order.delivery_notes}"_\n` : ''}
-📦 *ऑर्डर की गई बोरियां:*
 ${itemsText}
 
-📊 *ऑर्डर सारांश:*
-• कुल बोरियां: *${order.total_bags} बैग* (${order.total_bags * 50} किग्रा)
-• कीमत / भाव: *व्हाट्सएप पर चर्चा*
-• फार्म डिलीवरी: *फार्म तक सीधी टेम्पो डिलीवरी*
-💵 *भुगतान विधि:* ${paymentText}
-
----------------------------------------
-✅ *सिस्टम में ऑर्डर सुरक्षित दर्ज है।*
-👉 *कृपया भाव की पुष्टि और गाड़ी रवानगी के लिए व्हाट्सएप पर 'SEND' दबाएं!*
-(राधे कृष्णा पशु आहार • कृष्णा एग्रोवेट)`;
+*कुल बोरियां:* ${order.total_bags} बैग (${order.total_bags * 50} किग्रा)
+👤 *किसान:* ${order.customer_name} (${order.customer_phone})
+📍 *पता:* ${order.full_address || order.village_town || ''}
+${order.delivery_notes ? `📝 *निर्देश:* ${order.delivery_notes}\n` : ''}
+कृपया गाड़ी डिस्पैच व आज का भाव कन्फर्म करें।`;
   }
 
   // English version
@@ -143,37 +109,18 @@ ${itemsText}
     minute: '2-digit',
   });
 
-  const paymentText = order.payment_method === 'cash_on_delivery'
-    ? 'Cash on Delivery (COD)'
-    : order.payment_method;
+  return `*${businessName} - New Order*
 
-  return `🌾 *NEW CATTLE FEED ORDER* 🌾
-*${businessName.toUpperCase()} (KRISHNA AGROVET)*
+📋 *Order ID:* #${order.order_number}
+📅 *Date:* ${formattedDate}
 
-📋 *Order ID:* ${order.order_number}
-📅 *Date & Time:* ${formattedDate}
-
-👤 *Customer / Farmer Details:*
-• Name: *${order.customer_name}*
-• Mobile: *${order.customer_phone}*
-• Village / Town: *${order.village_town}*
-• Landmark: ${order.landmark || 'Not specified'}
-• Full Address: ${order.full_address}
-• PIN Code: ${order.pincode}
-• District & State: ${order.district}, ${order.state}
-${order.delivery_notes ? `• Delivery Instructions: _"${order.delivery_notes}"_\n` : ''}
-📦 *Ordered Feed Bags:*
 ${itemsText}
 
-📊 *Order Summary:*
-• Total Sacks: *${order.total_bags} Bags* (${order.total_bags * 50} kg approx)
-• Price / Rate: *Rate on WhatsApp*
-• Farm Delivery: *Doorstep Farm Delivery*
-💵 *Payment Method:* ${paymentText}
-
----------------------------------------
-✅ *Order successfully registered in the system.*
-👉 *Please press SEND to confirm your rate and schedule tempo dispatch with Krishna Agrovet!*`;
+*Total Bags:* ${order.total_bags} bags (${order.total_bags * 50} kg)
+👤 *Customer:* ${order.customer_name} (${order.customer_phone})
+📍 *Address:* ${order.full_address || order.village_town || ''}
+${order.delivery_notes ? `📝 *Notes:* ${order.delivery_notes}\n` : ''}
+Please confirm tempo dispatch and today's rate.`;
 }
 
 /**

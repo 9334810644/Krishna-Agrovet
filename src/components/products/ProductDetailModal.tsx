@@ -60,10 +60,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const isOutOfStock = product.available_stock <= 0;
 
   const cleanWhatsAppNumber = normalizeWhatsAppNumber(settings.owner_whatsapp);
+  const cleanName = product.name.replace(/^Radhe\s+Krishna\s+/i, '').trim() || product.name;
+  const weight = product.bag_weight_kg || 50;
   const productWhatsAppUrl = `https://wa.me/${cleanWhatsAppNumber}?text=${encodeURIComponent(
     lang === 'hi'
-      ? `नमस्ते ${settings.business_name}, मुझे ${product.name} की उपलब्धता और फार्म डिलीवरी के बारे में जानना है।`
-      : `Namaste ${settings.business_name}, I want to ask about ${product.name} availability and doorstep farm delivery.`
+      ? `*${settings.business_name} - पूछताछ*\n\n${cleanName} - ${quantity} bag (${weight}kg)\n\nकृपया आज का भाव व डिलीवरी का समय बताएं।`
+      : `*${settings.business_name} - Inquiry*\n\n${cleanName} - ${quantity} bag (${weight}kg)\n\nPlease share today's rate & delivery schedule.`
   )}`;
 
   const relatedProducts = allProducts.filter(p => p.id !== product.id && p.is_active !== false).slice(0, 3);

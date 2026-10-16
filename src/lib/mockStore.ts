@@ -13,6 +13,22 @@ const STORAGE_KEYS = {
   DELETED_PRODUCT_IDS: 'kav_deleted_product_ids',
 };
 
+// Automatic versioned storage purge to ensure mobile devices load latest catalog
+const CURRENT_CACHE_VERSION = 'v5_rkpa_authentic_catalog';
+if (typeof window !== 'undefined') {
+  try {
+    const cachedVer = localStorage.getItem('kav_cache_version');
+    if (cachedVer !== CURRENT_CACHE_VERSION) {
+      localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
+      localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
+      localStorage.removeItem(STORAGE_KEYS.DELETED_PRODUCT_IDS);
+      localStorage.setItem('kav_cache_version', CURRENT_CACHE_VERSION);
+    }
+  } catch {
+    // ignore
+  }
+}
+
 // Helper for local storage
 function getStorageItem<T>(key: string, defaultValue: T): T {
   try {

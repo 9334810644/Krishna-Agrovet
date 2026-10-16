@@ -5,6 +5,7 @@ import { ProductGrid } from '../components/products/ProductGrid';
 import { BrandStory } from '../components/home/BrandStory';
 import { FAQSection } from '../components/home/FAQSection';
 import { dataService } from '../lib/firebase';
+import { LocalStoreManager } from '../lib/mockStore';
 import { Product, Category } from '../types';
 
 interface HomePageProps {
@@ -12,13 +13,23 @@ interface HomePageProps {
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ searchQuery = '' }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      return LocalStoreManager.getProducts();
+    } catch {
+      return [];
+    }
+  });
+  const [categories, setCategories] = useState<Category[]>(() => {
+    try {
+      return LocalStoreManager.getCategories();
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState<boolean>(() => products.length === 0);
 
   useEffect(() => {
-    setLoading(true);
-
     const unsubProducts = dataService.subscribeProducts((list) => {
       setProducts(list);
       setLoading(false);
@@ -28,21 +39,7 @@ export const HomePage: React.FC<HomePageProps> = ({ searchQuery = '' }) => {
       setCategories(cats);
     });
 
-    // Safety timeout: ensure loading state never hangs indefinitely
-    const safetyTimer = setTimeout(async () => {
-      setLoading(false);
-      try {
-        const prods = await dataService.getProducts();
-        if (prods.length > 0) {
-          setProducts(prev => prev.length === 0 ? prods : prev);
-        }
-      } catch {
-        // ignore
-      }
-    }, 2500);
-
     return () => {
-      clearTimeout(safetyTimer);
       if (typeof unsubProducts === 'function') unsubProducts();
       if (typeof unsubCategories === 'function') unsubCategories();
     };

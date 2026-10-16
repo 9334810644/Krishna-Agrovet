@@ -77,8 +77,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         </div>
 
 
-        {/* Loading Skeletons */}
-        {loading && (
+        {/* Loading Skeletons - only if no products are cached yet */}
+        {loading && filteredProducts.length === 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[1, 2].map((n) => (
               <div key={n} className="bg-white rounded-3xl border-2 border-warm-cream-dark overflow-hidden shadow-xs">
@@ -95,7 +95,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         )}
 
         {/* Products Grid - Fills available container area */}
-        {!loading && filteredProducts.length > 0 && (
+        {filteredProducts.length > 0 && (
           <div className={`grid gap-8 ${
             filteredProducts.length === 1 
               ? 'grid-cols-1 max-w-3xl mx-auto' 

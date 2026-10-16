@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dataService } from '../../lib/firebase';
+import { LocalStoreManager } from '../../lib/mockStore';
 import { Product, Category } from '../../types';
 import { 
   Plus, Search, Edit3, EyeOff, Eye, 
@@ -8,9 +9,21 @@ import {
 } from 'lucide-react';
 
 export const AdminProductsPage: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      return LocalStoreManager.getProducts();
+    } catch {
+      return [];
+    }
+  });
+  const [categories, setCategories] = useState<Category[]>(() => {
+    try {
+      return LocalStoreManager.getCategories();
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState<boolean>(() => products.length === 0);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Modal State for Add / Edit
@@ -78,8 +91,6 @@ export const AdminProductsPage: React.FC = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
-
     const unsubProducts = dataService.subscribeProducts((list) => {
       setProducts(list);
       setLoading(false);
@@ -551,10 +562,17 @@ export const AdminProductsPage: React.FC = () => {
 
                 </tr>
               ))}
-              {filteredProducts.length === 0 && (
+              {filteredProducts.length === 0 && !loading && (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-charcoal-muted font-bold">
                     No products found.
+                  </td>
+                </tr>
+              )}
+              {filteredProducts.length === 0 && loading && (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-charcoal-muted font-bold">
+                    <RefreshCw className="w-5 h-5 animate-spin mx-auto text-krishna-red" />
                   </td>
                 </tr>
               )}

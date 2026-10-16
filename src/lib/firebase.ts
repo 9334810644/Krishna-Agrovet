@@ -221,6 +221,16 @@ export function normalizeProductDocument(id: string, data: any): Product {
 export const dataService = {
   // PRODUCTS - REAL-TIME SUBSCRIPTION
   subscribeProducts(callback: (products: Product[]) => void, onError?: (err: any) => void): Unsubscribe {
+    // Deliver locally cached products synchronously at 0ms so products never disappear on reload!
+    try {
+      const cached = LocalStoreManager.getProducts();
+      if (cached && cached.length > 0) {
+        callback(cached);
+      }
+    } catch (err) {
+      console.warn('Error retrieving cached products:', err);
+    }
+
     if (isFirebaseConfigured() && db) {
       try {
         // Query products collection
@@ -244,6 +254,7 @@ export const dataService = {
                       if (!a.featured && b.featured) return 1;
                       return (a.name || '').localeCompare(b.name || '');
                     });
+                    LocalStoreManager.setProducts(capList);
                     callback(capList);
                     return;
                   }
@@ -292,6 +303,7 @@ export const dataService = {
               return (a.name || '').localeCompare(b.name || '');
             });
 
+            LocalStoreManager.setProducts(list);
             callback(list);
           },
           (err) => {
@@ -454,6 +466,16 @@ export const dataService = {
 
   // CATEGORIES - REAL-TIME SUBSCRIPTION
   subscribeCategories(callback: (categories: Category[]) => void, onError?: (err: any) => void): Unsubscribe {
+    // Deliver locally cached categories synchronously at 0ms
+    try {
+      const cached = LocalStoreManager.getCategories();
+      if (cached && cached.length > 0) {
+        callback(cached);
+      }
+    } catch (err) {
+      console.warn('Error retrieving cached categories:', err);
+    }
+
     if (isFirebaseConfigured() && db) {
       try {
         const unsubscribe = onSnapshot(
@@ -477,6 +499,7 @@ export const dataService = {
               list.push({ id: d.id, ...d.data() } as Category);
             });
             list.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+            LocalStoreManager.setCategories(list);
             callback(list);
           },
           (err) => {
@@ -528,6 +551,16 @@ export const dataService = {
 
   // STORE SETTINGS - REAL-TIME SUBSCRIPTION
   subscribeSettings(callback: (settings: StoreSettings) => void, onError?: (err: any) => void): Unsubscribe {
+    // Deliver locally cached settings synchronously at 0ms
+    try {
+      const cached = LocalStoreManager.getSettings();
+      if (cached) {
+        callback(cached);
+      }
+    } catch (err) {
+      console.warn('Error retrieving cached settings:', err);
+    }
+
     if (isFirebaseConfigured() && db) {
       try {
         const docRef = doc(db, 'store_settings', 'default');

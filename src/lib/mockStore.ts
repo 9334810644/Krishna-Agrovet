@@ -135,6 +135,10 @@ export class LocalStoreManager {
     return list;
   }
 
+  static setProducts(products: Product[]): void {
+    setStorageItem(STORAGE_KEYS.PRODUCTS, products);
+  }
+
   static getProductById(id: string): Product | undefined {
     const products = this.getProducts();
     return products.find(p => p.id === id);
@@ -242,6 +246,10 @@ export class LocalStoreManager {
       setStorageItem(STORAGE_KEYS.CATEGORIES, list);
     }
     return list;
+  }
+
+  static setCategories(categories: Category[]): void {
+    setStorageItem(STORAGE_KEYS.CATEGORIES, categories);
   }
 
   // Store Settings

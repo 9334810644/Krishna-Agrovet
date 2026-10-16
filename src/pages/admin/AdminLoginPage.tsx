@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Lock, Mail, ArrowRight, Loader2, AlertCircle, ArrowLeft, Key } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Loader2, AlertCircle, ArrowLeft, Key, Eye, EyeOff } from 'lucide-react';
 
 export const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, loginAsDemoAdmin, isAdmin } = useAuth();
 
   const [email, setEmail] = useState<string>('krishnaagrovet@gmail.com');
-  const [password, setPassword] = useState<string>('Krishna@169#');
+  const [password, setPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -151,13 +152,27 @@ export const AdminLoginPage: React.FC = () => {
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-10 pr-3.5 py-2.5 bg-[#1F1E19] border border-stone-700 rounded-xl text-sm text-white placeholder:text-stone-600 focus:outline-hidden focus:border-[#F5C900] focus:ring-1 focus:ring-[#F5C900]"
+                placeholder="Enter admin password"
+                autoComplete="new-password"
+                className="w-full pl-10 pr-10 py-2.5 bg-[#1F1E19] border border-stone-700 rounded-xl text-sm text-white placeholder:text-stone-600 focus:outline-hidden focus:border-[#F5C900] focus:ring-1 focus:ring-[#F5C900]"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-200 transition-colors p-1"
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
             </div>
           </div>
 

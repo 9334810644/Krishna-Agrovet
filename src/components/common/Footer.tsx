@@ -162,11 +162,11 @@ export const Footer: React.FC = () => {
             <span className="text-stone-700 hidden sm:inline">•</span>
             <Link 
               to="/admin/login" 
-              className="inline-flex items-center gap-1.5 text-stone-400 hover:text-brand-yellow font-medium transition-colors py-1 px-2.5 rounded-lg bg-stone-900/60 border border-stone-800 hover:border-brand-yellow/50 active:scale-95"
-              title="Staff & Management Login"
+              className="inline-flex items-center gap-1.5 text-stone-300 hover:text-brand-yellow font-bold text-xs transition-all py-1.5 px-3 rounded-xl bg-stone-900 border border-stone-700/80 hover:border-brand-yellow/60 shadow-xs active:scale-95"
+              title="Staff Portal Login"
             >
-              <Lock className="w-3 h-3 text-stone-400 group-hover:text-brand-yellow shrink-0" />
-              <span>{lang === 'hi' ? 'स्टाफ लॉगिन (Staff Login)' : 'Staff Login'}</span>
+              <Lock className="w-3.5 h-3.5 text-brand-yellow shrink-0" />
+              <span>{lang === 'hi' ? 'स्टाफ पोर्टल (Staff Portal)' : 'Staff Portal'}</span>
             </Link>
           </div>
         </div>

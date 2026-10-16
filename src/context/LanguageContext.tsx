@@ -9,7 +9,7 @@ interface LanguageContextType {
   t: (key: string) => string;
 }
 
-const STORAGE_KEY = 'rkpa_language_v1';
+const STORAGE_KEY = 'rkpa_language_v2';
 
 const DICTIONARY: Record<Language, Record<string, string>> = {
   hi: {
@@ -26,7 +26,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     navAbout: 'हमारे बारे में',
     navDelivery: 'डिलीवरी क्षेत्र',
     navWhatsApp: 'व्हाट्सएप',
-    navAdmin: 'स्टाफ लॉगिन',
+    navAdmin: 'स्टाफ पोर्टल',
     searchPlaceholder: 'पशु आहार, बाईपास प्रोटीन, एक्स्ट्राप्रो खोजें...',
     cartBtn: 'कार्ट',
     bagsCount: 'बैग',
@@ -232,7 +232,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     navAbout: 'About Us',
     navDelivery: 'Delivery Coverage',
     navWhatsApp: 'WhatsApp',
-    navAdmin: 'Staff Login',
+    navAdmin: 'Staff Portal',
     searchPlaceholder: 'Search cattle feed, Bypass Protein, Ekstrapro...',
     cartBtn: 'Cart',
     bagsCount: 'bags',
@@ -433,9 +433,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved === 'hi' || saved === 'en') return saved;
-      return 'hi'; // Default to Hindi for welcoming regional farmers!
+      return 'en'; // Default to English
     } catch {
-      return 'hi';
+      return 'en';
     }
   });
 

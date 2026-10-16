@@ -56,8 +56,17 @@ export class LocalStoreManager {
     const deletedIds = getStorageItem<string[]>(STORAGE_KEYS.DELETED_PRODUCT_IDS, []);
     const rawList = getStorageItem<Product[]>(STORAGE_KEYS.PRODUCTS, MOCK_PRODUCTS);
     
-    // Purge any products that were deleted
-    const list = rawList.filter(p => !deletedIds.includes(p.id));
+    // Purge any products that were deleted or any unwanted legacy random feeds
+    const UNWANTED_PRODUCT_IDS = new Set([
+      'prod-kapila-hipro',
+      'prod-3',
+      'prod-4',
+      'prod-5',
+      'prod-6',
+      'prod-7',
+      'prod-8',
+    ]);
+    const list = rawList.filter(p => !deletedIds.includes(p.id) && !UNWANTED_PRODUCT_IDS.has(p.id));
     let changed = list.length !== rawList.length;
 
     const existingMap = new Map<string, Product>();
@@ -65,12 +74,12 @@ export class LocalStoreManager {
 
     for (const mockP of MOCK_PRODUCTS) {
       // NEVER restore any product that the user has explicitly deleted!
-      if (deletedIds.includes(mockP.id)) {
+      if (deletedIds.includes(mockP.id) || UNWANTED_PRODUCT_IDS.has(mockP.id)) {
         continue;
       }
 
       if (!existingMap.has(mockP.id)) {
-        list.unshift(mockP);
+        list.push(mockP);
         changed = true;
       } else {
         const item = existingMap.get(mockP.id)!;
@@ -100,13 +109,6 @@ export class LocalStoreManager {
             item.features = newFeat;
             changed = true;
           }
-        }
-        if (mockP.id === 'prod-kapila-hipro') {
-          item.image_url = mockP.image_url;
-          item.features = mockP.features;
-          item.packaging_info = mockP.packaging_info;
-          item.description = mockP.description;
-          changed = true;
         }
       }
     }
@@ -217,7 +219,13 @@ export class LocalStoreManager {
 
   // Categories
   static getCategories(): Category[] {
-    return getStorageItem<Category[]>(STORAGE_KEYS.CATEGORIES, MOCK_CATEGORIES);
+    const raw = getStorageItem<Category[]>(STORAGE_KEYS.CATEGORIES, MOCK_CATEGORIES);
+    const UNWANTED_CAT_IDS = new Set(['cat-3', 'cat-4', 'cat-5']);
+    const list = raw.filter(c => !UNWANTED_CAT_IDS.has(c.id));
+    if (list.length !== raw.length) {
+      setStorageItem(STORAGE_KEYS.CATEGORIES, list);
+    }
+    return list;
   }
 
   // Store Settings

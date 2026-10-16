@@ -24,40 +24,52 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const DEMO_AUTH_STORAGE_KEY = 'kav_demo_admin_auth';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    try {
+      const savedDemo = sessionStorage.getItem(DEMO_AUTH_STORAGE_KEY);
+      if (savedDemo) {
+        return JSON.parse(savedDemo);
+      }
+    } catch {
+      sessionStorage.removeItem(DEMO_AUTH_STORAGE_KEY);
+    }
+    return null;
+  });
+
+  const [loading, setLoading] = useState<boolean>(() => {
+    try {
+      const savedDemo = sessionStorage.getItem(DEMO_AUTH_STORAGE_KEY);
+      if (savedDemo) {
+        return false;
+      }
+    } catch {
+      // ignore
+    }
+    return isFirebaseConfigured();
+  });
+
   const isDemo = !isFirebaseConfigured();
 
   useEffect(() => {
-    // 1. Restore local session if exists
-    const savedDemo = sessionStorage.getItem(DEMO_AUTH_STORAGE_KEY);
-    if (savedDemo) {
-      try {
-        setUser(JSON.parse(savedDemo));
-      } catch {
-        sessionStorage.removeItem(DEMO_AUTH_STORAGE_KEY);
-      }
-    }
-
     // 2. Firebase Auth state listener
     if (isFirebaseConfigured() && auth) {
       const unsubscribe = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
-        if (fbUser) {
-          // If logged in as official owner email
-          if (fbUser.email?.toLowerCase() === 'krishnaagrovet@gmail.com') {
-            const ownerProfile: UserProfile = {
-              id: fbUser.uid,
-              email: fbUser.email,
-              full_name: fbUser.displayName || 'Krishna Agrovet Store Owner',
-              role: 'admin',
-            };
-            setUser(ownerProfile);
-            sessionStorage.setItem(DEMO_AUTH_STORAGE_KEY, JSON.stringify(ownerProfile));
-            setLoading(false);
-            return;
-          }
+        try {
+          if (fbUser) {
+            // If logged in as official owner email
+            if (fbUser.email?.toLowerCase() === 'krishnaagrovet@gmail.com') {
+              const ownerProfile: UserProfile = {
+                id: fbUser.uid,
+                email: fbUser.email,
+                full_name: fbUser.displayName || 'Krishna Agrovet Store Owner',
+                role: 'admin',
+              };
+              setUser(ownerProfile);
+              sessionStorage.setItem(DEMO_AUTH_STORAGE_KEY, JSON.stringify(ownerProfile));
+              setLoading(false);
+              return;
+            }
 
-          try {
             let isAdminUser = false;
             let fullName = fbUser.displayName || 'Owner Administrator';
 
@@ -87,14 +99,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } else if (!sessionStorage.getItem(DEMO_AUTH_STORAGE_KEY)) {
               setUser(null);
             }
-          } catch (err) {
-            console.error('Error verifying Firebase admin profile:', err);
           }
+        } catch (err) {
+          console.error('Error verifying Firebase admin profile:', err);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       });
 
-      return () => unsubscribe();
+      // Safety fallback: ensure loading never hangs if network is slow/offline
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 3000);
+
+      return () => {
+        unsubscribe();
+        clearTimeout(timer);
+      };
     } else {
       setLoading(false);
     }

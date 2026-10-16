@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { 
@@ -27,8 +27,7 @@ export const AdminLayout: React.FC = () => {
   }
 
   if (!isAdmin) {
-    navigate('/admin/login', { replace: true });
-    return null;
+    return <Navigate to="/admin/login" replace />;
   }
 
   const navItems = [

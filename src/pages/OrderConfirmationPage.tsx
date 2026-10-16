@@ -106,7 +106,7 @@ export const OrderConfirmationPage: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         
         {/* Success Header Box */}
-        <div className="bg-white rounded-3xl border-2 border-brand-yellow p-6 sm:p-8 text-center shadow-md space-y-4">
+        <div className="bg-white rounded-3xl border-2 border-brand-yellow p-4 sm:p-8 text-center shadow-md space-y-4">
           <div className="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
             <CheckCircle2 className="w-9 h-9" />
           </div>
@@ -166,7 +166,7 @@ export const OrderConfirmationPage: React.FC = () => {
         </div>
 
         {/* Order Details Receipt Card */}
-        <div className="bg-white rounded-3xl border-2 border-warm-cream-dark p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="bg-white rounded-3xl border-2 border-warm-cream-dark p-4 sm:p-8 shadow-sm space-y-6">
           <div className="border-b border-warm-cream-dark pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <img
@@ -178,7 +178,7 @@ export const OrderConfirmationPage: React.FC = () => {
                 <span className="text-[10px] uppercase font-black text-krishna-red tracking-wider">
                   RADHE KRISHNA PASHU AAHAR • KRISHNA AGROVET
                 </span>
-                <h2 className="text-lg font-black font-heading text-deep-charcoal">
+                <h2 className="text-base sm:text-lg font-black font-heading text-deep-charcoal">
                   Order Receipt & Farm Dispatch Slip
                 </h2>
               </div>
@@ -263,9 +263,9 @@ export const OrderConfirmationPage: React.FC = () => {
                 Doorstep Farm Delivery
               </span>
             </div>
-            <div className="flex justify-between items-center pt-3 border-t border-warm-cream-dark text-sm sm:text-base font-black text-deep-charcoal">
+            <div className="flex flex-wrap justify-between items-center gap-1 pt-3 border-t border-warm-cream-dark text-xs sm:text-base font-black text-deep-charcoal">
               <span>कीमत / Pricing:</span>
-              <span className="text-krishna-red font-heading font-black">
+              <span className="text-krishna-red font-heading font-black text-xs sm:text-sm">
                 व्हाट्सएप पर चर्चा / Rate on WhatsApp
               </span>
             </div>

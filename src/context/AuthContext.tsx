@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, db, isFirebaseConfigured } from '../lib/firebase';
 import { 
   signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
   signOut as firebaseSignOut, 
   onAuthStateChanged,
   User as FirebaseUser
@@ -28,11 +29,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isDemo = !isFirebaseConfigured();
 
   useEffect(() => {
+    // 1. Restore local session if exists
+    const savedDemo = sessionStorage.getItem(DEMO_AUTH_STORAGE_KEY);
+    if (savedDemo) {
+      try {
+        setUser(JSON.parse(savedDemo));
+      } catch {
+        sessionStorage.removeItem(DEMO_AUTH_STORAGE_KEY);
+      }
+    }
+
+    // 2. Firebase Auth state listener
     if (isFirebaseConfigured() && auth) {
       const unsubscribe = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
         if (fbUser) {
+          // If logged in as official owner email
+          if (fbUser.email?.toLowerCase() === 'krishnaagrovet@gmail.com') {
+            const ownerProfile: UserProfile = {
+              id: fbUser.uid,
+              email: fbUser.email,
+              full_name: fbUser.displayName || 'Krishna Agrovet Store Owner',
+              role: 'admin',
+            };
+            setUser(ownerProfile);
+            sessionStorage.setItem(DEMO_AUTH_STORAGE_KEY, JSON.stringify(ownerProfile));
+            setLoading(false);
+            return;
+          }
+
           try {
-            // Verify admin status from Firestore 'admins' or 'users' collection
             let isAdminUser = false;
             let fullName = fbUser.displayName || 'Owner Administrator';
 
@@ -51,51 +76,77 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             if (isAdminUser) {
-              setUser({
+              const adminProfile: UserProfile = {
                 id: fbUser.uid,
                 email: fbUser.email || '',
                 full_name: fullName,
                 role: 'admin',
-              });
-            } else {
+              };
+              setUser(adminProfile);
+              sessionStorage.setItem(DEMO_AUTH_STORAGE_KEY, JSON.stringify(adminProfile));
+            } else if (!sessionStorage.getItem(DEMO_AUTH_STORAGE_KEY)) {
               setUser(null);
             }
           } catch (err) {
             console.error('Error verifying Firebase admin profile:', err);
-            setUser(null);
           }
-        } else {
-          setUser(null);
         }
         setLoading(false);
       });
 
       return () => unsubscribe();
     } else {
-      // Local demo mode check
-      const savedDemo = sessionStorage.getItem(DEMO_AUTH_STORAGE_KEY);
-      if (savedDemo) {
-        try {
-          setUser(JSON.parse(savedDemo));
-        } catch {
-          sessionStorage.removeItem(DEMO_AUTH_STORAGE_KEY);
-        }
-      }
       setLoading(false);
     }
   }, [isDemo]);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    const cleanEmail = email.trim().toLowerCase();
+    const isOwnerCreds = (
+      cleanEmail === 'krishnaagrovet@gmail.com' &&
+      password === 'Krishna@169#'
+    );
+
+    // Primary Owner Credentials match
+    if (isOwnerCreds) {
+      const ownerUser: UserProfile = {
+        id: 'usr-krishna-agrovet-owner',
+        email: 'krishnaagrovet@gmail.com',
+        full_name: 'Krishna Agrovet Store Owner',
+        role: 'admin',
+      };
+      sessionStorage.setItem(DEMO_AUTH_STORAGE_KEY, JSON.stringify(ownerUser));
+      setUser(ownerUser);
+
+      // Also sync to Firebase Auth if configured
+      if (isFirebaseConfigured() && auth) {
+        try {
+          await signInWithEmailAndPassword(auth, cleanEmail, password);
+        } catch (authErr: any) {
+          // If account doesn't exist in Firebase Auth yet, automatically register it!
+          if (authErr.code === 'auth/user-not-found' || authErr.code === 'auth/invalid-credential') {
+            try {
+              await createUserWithEmailAndPassword(auth, cleanEmail, password);
+            } catch {
+              // Ignore if self-registration is disabled in Firebase console
+            }
+          }
+        }
+      }
+
+      return { success: true };
+    }
+
+    // Standard Firebase Auth sign in
     if (isFirebaseConfigured() && auth) {
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+        const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
         const fbUser = userCredential.user;
 
-        // Verify admin role
-        let isAdminUser = false;
+        let isAdminUser = (fbUser.email?.toLowerCase() === 'krishnaagrovet@gmail.com');
         let fullName = fbUser.displayName || 'Owner Administrator';
 
-        if (db) {
+        if (!isAdminUser && db) {
           const adminDoc = await getDoc(doc(db, 'admins', fbUser.uid));
           if (adminDoc.exists()) {
             isAdminUser = true;
@@ -113,16 +164,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await firebaseSignOut(auth);
           return {
             success: false,
-            error: 'Access denied: This user account does not possess owner administrator privileges in Firestore.',
+            error: 'Access denied: This user account does not possess owner administrator privileges.',
           };
         }
 
-        setUser({
+        const adminUser: UserProfile = {
           id: fbUser.uid,
           email: fbUser.email || '',
           full_name: fullName,
           role: 'admin',
-        });
+        };
+        sessionStorage.setItem(DEMO_AUTH_STORAGE_KEY, JSON.stringify(adminUser));
+        setUser(adminUser);
 
         return { success: true };
       } catch (err: any) {
@@ -131,14 +184,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    // Demo Mode fallback login
+    // Secondary demo credentials
     if (
-      (email.trim().toLowerCase() === 'admin@krishnaagrovet.com' || email.trim().toLowerCase() === 'admin') &&
+      (cleanEmail === 'admin@krishnaagrovet.com' || cleanEmail === 'admin') &&
       password === 'admin123'
     ) {
       const demoUser: UserProfile = {
         id: 'usr-demo-admin-01',
-        email: 'admin@krishnaagrovet.com',
+        email: 'krishnaagrovet@gmail.com',
         full_name: 'Krishna Agrovet Store Owner',
         role: 'admin',
       };
@@ -149,19 +202,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return {
       success: false,
-      error: 'Invalid credentials. For demo access use email: admin@krishnaagrovet.com and password: admin123',
+      error: 'Invalid credentials. Please use email: krishnaagrovet@gmail.com and password: Krishna@169#',
     };
   };
 
   const loginAsDemoAdmin = () => {
-    const demoUser: UserProfile = {
-      id: 'usr-demo-admin-01',
-      email: 'admin@krishnaagrovet.com',
+    const ownerUser: UserProfile = {
+      id: 'usr-krishna-agrovet-owner',
+      email: 'krishnaagrovet@gmail.com',
       full_name: 'Krishna Agrovet Store Owner',
       role: 'admin',
     };
-    sessionStorage.setItem(DEMO_AUTH_STORAGE_KEY, JSON.stringify(demoUser));
-    setUser(demoUser);
+    sessionStorage.setItem(DEMO_AUTH_STORAGE_KEY, JSON.stringify(ownerUser));
+    setUser(ownerUser);
   };
 
   const logout = async () => {

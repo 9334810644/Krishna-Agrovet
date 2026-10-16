@@ -5,7 +5,7 @@ export const INITIAL_STORE_SETTINGS: StoreSettings = {
   tagline: 'भरोसेमंद पशु आहार, आपके पशुधन के लिए • KRISHNA AGROVET',
   owner_whatsapp: '919470847471',
   owner_phone: '+91 94708 47471',
-  support_email: 'krishnaagarovet@gmail.com',
+  support_email: 'krishnaagrovet@gmail.com',
   delivery_areas: 'Ichak, Hazaribagh, Jharkhand & Chandauli (U.P) & Surrounding Gram Panchayats',
   office_address: 'Khasra No. 354/ 1, Patanwa, Industrial area, Ramnagar, Chandauli, ( U. P )',
   min_order_bags: 1,
@@ -15,6 +15,7 @@ export const INITIAL_STORE_SETTINGS: StoreSettings = {
   is_store_open: true,
   logo_url: '/images/krishna-agrovet-logo.png',
   hero_banner_url: '/images/banners/radhe-krishna-banner.jpg',
+  hero_banners: ['/images/banners/radhe-krishna-banner.jpg'],
 };
 
 export const MOCK_CATEGORIES: Category[] = [
@@ -146,6 +147,16 @@ Helps cows and buffaloes achieve higher lactation peaks, improved butterfat test
       moisture: '10.0% max',
     },
     feeding_guide: 'Feed 400g per liter of cow milk and 500g per liter of buffalo milk output, plus 1.5kg baseline for body maintenance.',
+    ingredients: [
+      'Grains & Cereals (अनाज)',
+      'Mustard Oil Cake (सरसों की शुद्ध खल)',
+      'De-Oiled Rice Bran (डीओआरबी)',
+      'Cane Molasses (गन्ना शीरा)',
+      'Rumen-Protected Bypass Fat (बाईपास फैट)',
+      'Bypass Protein Meal (बाईपास प्रोटीन)',
+      'Chelated Minerals & Zinc (खनिज मिश्रण)',
+      'Vitamins A, D3, E'
+    ],
     created_at: new Date(Date.now() - 30 * 86400000).toISOString(),
     updated_at: new Date().toISOString(),
   },
@@ -187,6 +198,16 @@ Prevents negative energy balance and promotes smooth post-calving recovery.`,
       moisture: '10.0% max',
     },
     feeding_guide: 'Feed twice daily mixed with chopped wheat straw and fresh green fodder during morning and evening milking.',
+    ingredients: [
+      'High-Density Energy Grains (पोषक अनाज)',
+      'Cottonseed & Mustard Meal (बिनौला व सरसों खल)',
+      'De-Oiled Rice Bran (डीओआरबी)',
+      'Liquid Cane Molasses (तरल शीरा)',
+      'Fortified Bypass Amino Acids (अमीनो एसिड्स)',
+      'Dicalcium Phosphate (DCP)',
+      'Chelated Trace Minerals (चिलेटेड मिनरल्स)',
+      'Digestive Probiotics & Enzymes'
+    ],
     created_at: new Date(Date.now() - 25 * 86400000).toISOString(),
     updated_at: new Date().toISOString(),
   },

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { isFirebaseConfigured } from '../../lib/firebase';
-import { Database, X, ExternalLink } from 'lucide-react';
+import { Database, X } from 'lucide-react';
 
 export const DemoModeBanner: React.FC = () => {
   const [dismissed, setDismissed] = useState(false);
@@ -14,16 +15,10 @@ export const DemoModeBanner: React.FC = () => {
         <div className="flex items-center gap-2">
           <Database className="w-4 h-4 text-amber-300 shrink-0" />
           <span>
-            <strong className="font-semibold text-amber-200">Interactive Demo Mode:</strong> Running with local persistent data & realistic cattle feed records. To link live Firebase, add <code className="bg-amber-950/70 px-1.5 py-0.5 rounded text-amber-200 font-mono text-xs">VITE_FIREBASE_API_KEY</code> & <code className="bg-amber-950/70 px-1.5 py-0.5 rounded text-amber-200 font-mono text-xs">VITE_FIREBASE_PROJECT_ID</code> in <code className="font-mono text-xs text-amber-200">.env</code>.
+            <strong className="font-semibold text-amber-200">Interactive Demo Mode:</strong> Running with local persistent data & realistic cattle feed records.
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <a
-            href="/admin"
-            className="hidden sm:inline-flex items-center gap-1 text-amber-200 hover:text-white underline font-medium"
-          >
-            Open Admin Demo <ExternalLink className="w-3 h-3" />
-          </a>
           <button
             onClick={() => setDismissed(true)}
             aria-label="Dismiss banner"

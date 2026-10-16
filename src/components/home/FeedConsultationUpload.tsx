@@ -117,11 +117,11 @@ I am attaching the photo from my device now. Please guide me which Radhe Krishna
   };
 
   return (
-    <section id="consultation" className="py-14 sm:py-20 bg-warm-cream border-b border-warm-cream-dark">
+    <section id="consultation" className="py-10 sm:py-20 bg-warm-cream border-b border-warm-cream-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-14">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-brand-yellow/80 shadow-xs text-krishna-red text-xs sm:text-sm font-bold">
             <Camera className="w-4 h-4 text-krishna-red" />
             <span>{t('consultationTag')}</span>
@@ -137,9 +137,9 @@ I am attaching the photo from my device now. Please guide me which Radhe Krishna
         </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-3xl border-2 border-warm-cream-dark shadow-xl overflow-hidden p-6 sm:p-10 lg:p-12">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border-2 border-warm-cream-dark shadow-xl overflow-hidden p-4 sm:p-8 lg:p-12">
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-start">
             
             {/* Left Column: Device Photo Upload Box */}
             <div className="lg:col-span-6 space-y-4">
@@ -177,21 +177,21 @@ I am attaching the photo from my device now. Please guide me which Radhe Krishna
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
-                  className={`p-8 sm:p-12 rounded-3xl border-2 border-dashed text-center transition-all cursor-pointer flex flex-col items-center justify-center min-h-[260px] sm:min-h-[300px] ${
+                  className={`p-5 sm:p-12 rounded-2xl sm:rounded-3xl border-2 border-dashed text-center transition-all cursor-pointer flex flex-col items-center justify-center min-h-[220px] sm:min-h-[300px] ${
                     isDragging
                       ? 'border-krishna-red bg-krishna-red/10 scale-102'
                       : 'border-warm-cream-dark hover:border-krishna-red bg-warm-cream/50 hover:bg-warm-cream'
                   }`}
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-white text-krishna-red border-2 border-warm-cream-dark flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white text-krishna-red border-2 border-warm-cream-dark flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
                     {isProcessing ? (
-                      <Loader2 className="w-8 h-8 animate-spin" />
+                      <Loader2 className="w-7 h-7 sm:w-8 sm:h-8 animate-spin" />
                     ) : (
-                      <UploadCloud className="w-8 h-8" />
+                      <UploadCloud className="w-7 h-7 sm:w-8 sm:h-8" />
                     )}
                   </div>
 
-                  <h3 className="text-base font-black text-deep-charcoal font-heading">
+                  <h3 className="text-sm sm:text-base font-black text-deep-charcoal font-heading">
                     {lang === 'hi' ? 'डिवाइस से फोटो चुनें या कैमरा खोलें' : 'Choose Photo from Device or Open Camera'}
                   </h3>
 
@@ -207,7 +207,7 @@ I am attaching the photo from my device now. Please guide me which Radhe Krishna
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-yellow hover:bg-brand-yellow-light text-deep-charcoal font-black rounded-xl text-xs shadow-sm border border-brand-yellow-dark cursor-pointer active:scale-98"
+                    className="mt-4 inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-brand-yellow hover:bg-brand-yellow-light text-deep-charcoal font-black rounded-xl text-xs sm:text-sm shadow-sm border border-brand-yellow-dark cursor-pointer active:scale-98"
                   >
                     <Camera className="w-4 h-4" />
                     <span>{lang === 'hi' ? 'फोटो अपलोड करें (कैमरा / गैलरी)' : 'Upload from Device (Camera / Gallery)'}</span>

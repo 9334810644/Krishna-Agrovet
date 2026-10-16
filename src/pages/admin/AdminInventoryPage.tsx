@@ -20,25 +20,39 @@ export const AdminInventoryPage: React.FC = () => {
   const [saving, setSaving] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  useEffect(() => {
+    setLoading(true);
+
+    const unsubProducts = dataService.subscribeProducts((list) => {
+      setProducts(list);
+      setLoading(false);
+    });
+
+    const unsubMovements = dataService.subscribeInventoryMovements((moves) => {
+      setMovements(moves);
+    });
+
+    return () => {
+      if (typeof unsubProducts === 'function') unsubProducts();
+      if (typeof unsubMovements === 'function') unsubMovements();
+    };
+  }, []);
+
   const loadData = async () => {
     setLoading(true);
     try {
-      const [prodList, moveList] = await Promise.all([
+      const [prods, moves] = await Promise.all([
         dataService.getProducts(),
         dataService.getInventoryMovements(),
       ]);
-      setProducts(prodList);
-      setMovements(moveList);
+      setProducts(prods);
+      setMovements(moves);
     } catch (err) {
-      console.error('Error loading inventory data:', err);
+      console.error('Error reloading inventory:', err);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   const openAdjustModal = (product: Product, type: 'add' | 'subtract' = 'add') => {
     setAdjustModalProduct(product);
@@ -136,7 +150,7 @@ export const AdminInventoryPage: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[700px] text-left text-xs">
             <thead className="bg-warm-cream text-deep-charcoal font-black border-b border-warm-cream-dark uppercase text-[11px]">
               <tr>
                 <th className="py-3 px-4">Product</th>
@@ -232,7 +246,7 @@ export const AdminInventoryPage: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto max-h-96">
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[700px] text-left text-xs">
             <thead className="bg-warm-cream text-deep-charcoal font-black border-b border-warm-cream-dark uppercase text-[11px] sticky top-0">
               <tr>
                 <th className="py-2.5 px-4">Date & Time</th>

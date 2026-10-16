@@ -3,8 +3,8 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { 
-  LayoutDashboard, Package, Boxes, ShoppingCart, 
-  Settings, LogOut, ExternalLink, Menu, X, Shield, ChevronRight 
+  LayoutDashboard, Package, Boxes, 
+  Settings, LogOut, Menu, X, Shield, ChevronRight, Store, ArrowLeft 
 } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
@@ -33,7 +33,6 @@ export const AdminLayout: React.FC = () => {
 
   const navItems = [
     { label: 'Overview', href: '/admin', icon: LayoutDashboard },
-    { label: 'Orders & Receipts', href: '/admin/orders', icon: ShoppingCart },
     { label: 'Products & Packaging', href: '/admin/products', icon: Package },
     { label: 'Inventory & Stock', href: '/admin/inventory', icon: Boxes },
     { label: 'Store Settings', href: '/admin/settings', icon: Settings },
@@ -51,24 +50,28 @@ export const AdminLayout: React.FC = () => {
       <aside className="hidden md:flex flex-col w-64 bg-deep-charcoal text-stone-200 border-r border-stone-800 shrink-0">
         
         {/* Brand Banner */}
-        <div className="p-5 border-b border-stone-800 flex items-center gap-3">
+        <div className="p-4 border-b border-stone-800 flex items-center gap-3">
           {settings.logo_url ? (
             <img
               src={settings.logo_url}
               alt={settings.business_name}
-              className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 border border-brand-yellow shadow-sm shrink-0"
+              className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 border-2 border-brand-yellow shadow-md shrink-0"
             />
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-krishna-red to-krishna-red-dark text-brand-yellow flex items-center justify-center font-black font-heading text-lg border border-brand-yellow shadow-sm shrink-0">
-              RK
-            </div>
+            <img
+              src="/images/krishna-agrovet-logo.png"
+              alt="Krishna Agrovet Logo"
+              className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 border-2 border-brand-yellow shadow-md shrink-0"
+            />
           )}
-          <div className="min-w-0">
-            <h2 className="text-sm font-black font-heading text-white truncate">
-              {settings.business_name}
-            </h2>
-            <span className="text-[10px] text-brand-yellow font-black flex items-center gap-1 uppercase tracking-wider">
-              <Shield className="w-3 h-3 text-brand-yellow" /> KRISHNA AGROVET PORTAL
+          <div className="min-w-0 flex flex-col justify-center">
+            <img
+              src="/images/radhe-krishna-transparent-wordmark.png"
+              alt="राधे कृष्णा पशु आहार"
+              className="h-7 w-auto max-w-[155px] object-contain filter brightness-110 drop-shadow-xs"
+            />
+            <span className="text-[10px] text-brand-yellow font-black flex items-center gap-1 uppercase tracking-wider mt-0.5 whitespace-nowrap">
+              <Shield className="w-3 h-3 text-brand-yellow shrink-0" /> KRISHNA AGROVET PORTAL
             </span>
           </div>
         </div>
@@ -102,11 +105,13 @@ export const AdminLayout: React.FC = () => {
         <div className="p-4 border-t border-stone-800 space-y-3 bg-black/40">
           <Link
             to="/"
-            target="_blank"
             className="flex items-center justify-between px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white text-xs font-bold transition-colors border border-stone-700"
           >
-            <span>Customer Storefront</span>
-            <ExternalLink className="w-3.5 h-3.5 text-brand-yellow" />
+            <div className="flex items-center gap-2">
+              <Store className="w-3.5 h-3.5 text-brand-yellow" />
+              <span>Customer Storefront</span>
+            </div>
+            <ArrowLeft className="w-3.5 h-3.5 text-stone-400 rotate-180" />
           </Link>
 
           <div className="flex items-center justify-between pt-1">
@@ -132,22 +137,30 @@ export const AdminLayout: React.FC = () => {
       </aside>
 
       {/* Mobile Top Header for Admin */}
-      <div className="md:hidden bg-deep-charcoal text-white p-4 flex items-center justify-between border-b border-stone-800">
-        <div className="flex items-center gap-2.5">
+      <div className="md:hidden bg-deep-charcoal text-white p-3.5 px-4 flex items-center justify-between border-b border-stone-800">
+        <div className="flex items-center gap-2.5 min-w-0">
           {settings.logo_url ? (
             <img
               src={settings.logo_url}
               alt={settings.business_name}
-              className="w-8 h-8 rounded-lg object-contain bg-white p-0.5 border border-brand-yellow shrink-0"
+              className="w-9 h-9 rounded-lg object-contain bg-white p-0.5 border border-brand-yellow shrink-0"
             />
           ) : (
-            <div className="w-8 h-8 rounded-lg bg-krishna-red text-brand-yellow flex items-center justify-center font-black text-sm border border-brand-yellow shrink-0">
-              RK
-            </div>
+            <img
+              src="/images/krishna-agrovet-logo.png"
+              alt="Krishna Agrovet Logo"
+              className="w-9 h-9 rounded-lg object-contain bg-white p-0.5 border border-brand-yellow shrink-0"
+            />
           )}
-          <div>
-            <h1 className="text-xs font-black font-heading text-white">{settings.business_name}</h1>
-            <span className="text-[10px] text-brand-yellow font-bold uppercase">KRISHNA AGROVET</span>
+          <div className="flex flex-col justify-center min-w-0">
+            <img
+              src="/images/radhe-krishna-transparent-wordmark.png"
+              alt="राधे कृष्णा पशु आहार"
+              className="h-6 w-auto max-w-[140px] object-contain filter brightness-110 drop-shadow-xs"
+            />
+            <span className="text-[9.5px] text-brand-yellow font-bold uppercase flex items-center gap-1">
+              <Shield className="w-2.5 h-2.5 text-brand-yellow shrink-0" /> KRISHNA AGROVET PORTAL
+            </span>
           </div>
         </div>
 
@@ -185,10 +198,11 @@ export const AdminLayout: React.FC = () => {
           <div className="pt-3 border-t border-stone-800 flex items-center justify-between">
             <Link
               to="/"
+              onClick={() => setMobileNavOpen(false)}
               className="text-xs text-brand-yellow font-bold flex items-center gap-1.5"
             >
+              <Store className="w-3.5 h-3.5" />
               <span>View Customer Storefront</span>
-              <ExternalLink className="w-3.5 h-3.5" />
             </Link>
             <button
               type="button"

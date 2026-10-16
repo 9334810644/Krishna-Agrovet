@@ -78,6 +78,10 @@ export class LocalStoreManager {
           item.features = mockP.features;
           changed = true;
         }
+        if (!item.ingredients && mockP.ingredients) {
+          item.ingredients = mockP.ingredients;
+          changed = true;
+        }
         if (!item.packaging_info && mockP.packaging_info) {
           item.packaging_info = mockP.packaging_info;
           changed = true;
@@ -158,6 +162,7 @@ export class LocalStoreManager {
         featured: !!product.featured,
         nutritional_info: product.nutritional_info || {},
         feeding_guide: product.feeding_guide || '',
+        features: product.features || [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -227,13 +232,17 @@ export class LocalStoreManager {
       settings.hero_banner_url = '/images/banners/radhe-krishna-banner.jpg';
       changed = true;
     }
+    if (!settings.hero_banners || settings.hero_banners.length === 0) {
+      settings.hero_banners = [settings.hero_banner_url || '/images/banners/radhe-krishna-banner.jpg'];
+      changed = true;
+    }
     if (settings.owner_whatsapp === '919876543210' || !settings.owner_whatsapp || settings.owner_whatsapp.includes('98765')) {
       settings.owner_whatsapp = '919470847471';
       settings.owner_phone = '+91 94708 47471';
       changed = true;
     }
-    if (settings.support_email !== 'krishnaagarovet@gmail.com') {
-      settings.support_email = 'krishnaagarovet@gmail.com';
+    if (settings.support_email !== 'krishnaagrovet@gmail.com') {
+      settings.support_email = 'krishnaagrovet@gmail.com';
       changed = true;
     }
     if (!settings.office_address) {

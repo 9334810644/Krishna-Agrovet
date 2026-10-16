@@ -59,6 +59,7 @@ export interface Product {
   };
   feeding_guide?: string;
   features?: string[];
+  ingredients?: string[];
   packaging_info?: string;
   created_at?: string;
   updated_at?: string;
@@ -139,6 +140,7 @@ export interface StoreSettings {
   office_address?: string;
   logo_url?: string;
   hero_banner_url?: string;
+  hero_banners?: string[];
 }
 
 export interface UserProfile {

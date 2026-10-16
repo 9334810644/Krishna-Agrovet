@@ -11,10 +11,10 @@ export const DeliveryCoverage: React.FC = () => {
   const officeAddress = settings.office_address || 'Khasra No. 354/ 1, Patanwa, Industrial area, Ramnagar, Chandauli, ( U. P )';
 
   return (
-    <section id="delivery" className="py-14 sm:py-20 bg-warm-cream border-b border-warm-cream-dark">
+    <section id="delivery" className="py-10 sm:py-20 bg-warm-cream border-b border-warm-cream-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-3xl p-6 sm:p-10 border-2 border-warm-cream-dark shadow-md">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-10 border-2 border-warm-cream-dark shadow-md">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
             
             <div className="lg:col-span-7 space-y-4">
               <div className="inline-flex items-center gap-1.5 text-xs font-bold text-krishna-red bg-warm-cream px-3 py-1 rounded-full border border-warm-cream-dark">
@@ -68,7 +68,7 @@ export const DeliveryCoverage: React.FC = () => {
               </div>
             </div>
 
-            <div className="lg:col-span-5 bg-gradient-to-br from-krishna-red via-krishna-red-dark to-[#6E0E12] text-white rounded-3xl p-6 sm:p-8 space-y-5 border-2 border-brand-yellow/30 shadow-xl">
+            <div className="lg:col-span-5 bg-gradient-to-br from-krishna-red via-krishna-red-dark to-[#6E0E12] text-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 space-y-4 sm:space-y-5 border-2 border-brand-yellow/30 shadow-xl">
               <div className="flex items-center justify-between">
                 <span className="bg-brand-yellow text-deep-charcoal text-[10px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wider">
                   KRISHNA AGROVET

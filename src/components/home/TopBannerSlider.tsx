@@ -7,77 +7,48 @@ export const TopBannerSlider: React.FC = () => {
   const { settings } = useStoreSettings();
   const { lang } = useLanguage();
 
-  // Slide state: 0 = primary banner, 1 = duplicate clone for seamless infinite slide transition
+  const banners = (settings.hero_banners && settings.hero_banners.length > 0)
+    ? settings.hero_banners
+    : [settings.hero_banner_url || '/images/banners/radhe-krishna-banner.jpg'];
+
   const [slideIndex, setSlideIndex] = useState<number>(0);
-  const [isTransitioning, setIsTransitioning] = useState<boolean>(true);
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
-  const isAnimatingRef = useRef<boolean>(false);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
-  const resetTimeoutRef = useRef<any>(null);
 
-  const bannerSrc = settings.hero_banner_url || '/images/banners/radhe-krishna-banner.jpg';
   const bannerAlt = lang === 'hi' 
     ? 'राधे कृष्णा पशु आहार - कृष्णा एग्रोवेट, इचाक हजारीबाग' 
     : 'Radhe Krishna Cattle Feed - Krishna Agrovet, Ichak Hazaribagh';
 
+  // Keep slideIndex in valid range if banners list changes
+  useEffect(() => {
+    if (slideIndex >= banners.length) {
+      setSlideIndex(0);
+    }
+  }, [banners.length, slideIndex]);
+
   // Smooth slide forward (Next)
   const slideNext = useCallback(() => {
-    if (isAnimatingRef.current) return;
-    isAnimatingRef.current = true;
-
-    setIsTransitioning(true);
-    setSlideIndex(1);
-
-    if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
-    resetTimeoutRef.current = setTimeout(() => {
-      // Instantly reset back to 0 without transition (imperceptible because Copy 1 & Copy 2 are identical)
-      setIsTransitioning(false);
-      setSlideIndex(0);
-      isAnimatingRef.current = false;
-    }, 760);
-  }, []);
+    if (banners.length <= 1) return;
+    setSlideIndex(prev => (prev + 1) % banners.length);
+  }, [banners.length]);
 
   // Smooth slide backward (Prev)
   const slidePrev = useCallback(() => {
-    if (isAnimatingRef.current) return;
-    isAnimatingRef.current = true;
+    if (banners.length <= 1) return;
+    setSlideIndex(prev => (prev - 1 + banners.length) % banners.length);
+  }, [banners.length]);
 
-    // First jump silently to 1 with no animation
-    setIsTransitioning(false);
-    setSlideIndex(1);
-
-    // Then animate back to 0 so it slides from left to right
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setIsTransitioning(true);
-        setSlideIndex(0);
-
-        if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
-        resetTimeoutRef.current = setTimeout(() => {
-          isAnimatingRef.current = false;
-        }, 760);
-      });
-    });
-  }, []);
-
-  // Automatic sliding interval: slides smoothly across every 4.5 seconds
+  // Automatic sliding interval: rotates every 4.5 seconds
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || banners.length <= 1) return;
     const interval = setInterval(() => {
       slideNext();
     }, 4500);
 
     return () => clearInterval(interval);
-  }, [isPaused, slideNext]);
-
-  // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
-      if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
-    };
-  }, []);
+  }, [isPaused, banners.length, slideNext]);
 
   // Touch gesture handlers for mobile swipe
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -89,7 +60,7 @@ export const TopBannerSlider: React.FC = () => {
   };
 
   const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
+    if (!touchStartX.current || !touchEndX.current || banners.length <= 1) return;
     const distance = touchStartX.current - touchEndX.current;
     const minSwipeDistance = 40;
 
@@ -112,79 +83,86 @@ export const TopBannerSlider: React.FC = () => {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Seamless Sliding Carousel Track */}
+      {/* Auto-advance animated progress bar (shown when multiple banners exist) */}
+      {banners.length > 1 && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-black/25 z-20 overflow-hidden">
+          <div 
+            key={`banner-progress-${slideIndex}-${isPaused}`}
+            className="h-full bg-gradient-to-r from-brand-yellow via-brand-yellow-light to-brand-yellow"
+            style={{
+              animation: isPaused ? 'none' : 'sliderLine 4.5s linear forwards'
+            }}
+          />
+        </div>
+      )}
+
+      {/* Sliding Carousel Track */}
       <div 
-        className="flex w-full will-change-transform"
+        className="flex w-full will-change-transform transition-transform duration-500 ease-out"
         style={{ 
           transform: `translateX(-${slideIndex * 100}%)`,
-          transition: isTransitioning 
-            ? 'transform 750ms cubic-bezier(0.22, 1, 0.36, 1)' 
-            : 'none'
         }}
       >
-        {/* Copy 1: Primary Banner filling the screen width */}
-        <div className="w-full shrink-0 relative">
-          <a 
-            href="#products" 
-            className="block w-full cursor-pointer relative"
-            title={bannerAlt}
-            aria-label={bannerAlt}
-          >
-            <img
-              src={bannerSrc}
-              alt={bannerAlt}
-              className="w-full h-auto block object-cover sm:object-fill max-h-[520px] transition-opacity duration-300"
-              loading="eager"
-            />
-          </a>
-        </div>
-
-        {/* Copy 2: Duplicate Banner to allow continuous seamless sliding */}
-        <div className="w-full shrink-0 relative">
-          <a 
-            href="#products" 
-            className="block w-full cursor-pointer relative"
-            title={bannerAlt}
-            aria-label={bannerAlt}
-          >
-            <img
-              src={bannerSrc}
-              alt={bannerAlt}
-              className="w-full h-auto block object-cover sm:object-fill max-h-[520px] transition-opacity duration-300"
-              loading="lazy"
-            />
-          </a>
-        </div>
+        {banners.map((src, index) => (
+          <div key={`banner-slide-${index}`} className="w-full shrink-0 relative overflow-hidden">
+            <a 
+              href="#products" 
+              className="block w-full cursor-pointer relative"
+              title={bannerAlt}
+              aria-label={`${bannerAlt} (${index + 1})`}
+            >
+              <img
+                src={src}
+                alt={`${bannerAlt} - ${index + 1}`}
+                className="w-full h-auto block object-cover sm:object-fill max-h-[520px] transition-transform duration-700 ease-out hover:scale-102"
+                loading={index === 0 ? 'eager' : 'lazy'}
+              />
+            </a>
+          </div>
+        ))}
       </div>
 
-      {/* Left Navigation Arrow */}
-      <button
-        type="button"
-        onClick={slidePrev}
-        aria-label="Slide Previous"
-        className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/75 text-white border border-white/30 backdrop-blur-xs flex items-center justify-center transition-all duration-200 transform hover:scale-110 active:scale-95 shadow-lg z-20 cursor-pointer"
-      >
-        <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
-      </button>
+      {/* Navigation Arrows (shown if more than 1 banner exists) */}
+      {banners.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={slidePrev}
+            aria-label="Previous Banner"
+            className="absolute left-1.5 sm:left-5 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/75 text-white border border-white/30 backdrop-blur-xs flex items-center justify-center transition-all duration-200 transform hover:scale-110 active:scale-95 shadow-lg z-20 cursor-pointer"
+          >
+            <ChevronLeft className="w-3.5 h-3.5 sm:w-6 sm:h-6" />
+          </button>
 
-      {/* Right Navigation Arrow */}
-      <button
-        type="button"
-        onClick={slideNext}
-        aria-label="Slide Next"
-        className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/75 text-white border border-white/30 backdrop-blur-xs flex items-center justify-center transition-all duration-200 transform hover:scale-110 active:scale-95 shadow-lg z-20 cursor-pointer"
-      >
-        <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
-      </button>
+          <button
+            type="button"
+            onClick={slideNext}
+            aria-label="Next Banner"
+            className="absolute right-1.5 sm:right-5 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/75 text-white border border-white/30 backdrop-blur-xs flex items-center justify-center transition-all duration-200 transform hover:scale-110 active:scale-95 shadow-lg z-20 cursor-pointer"
+          >
+            <ChevronRight className="w-3.5 h-3.5 sm:w-6 sm:h-6" />
+          </button>
+        </>
+      )}
 
-      {/* Subtle Slide Animation Indicator Bar at the bottom */}
-      <div className="absolute bottom-1.5 sm:bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20 pointer-events-none">
-        <span 
-          className={`h-1.5 rounded-full transition-all duration-700 bg-brand-yellow shadow-xs ${
-            slideIndex === 0 ? 'w-8 sm:w-10 opacity-90' : 'w-4 sm:w-6 opacity-60'
-          }`} 
-        />
-      </div>
+      {/* Interactive Dot Indicators (shown if more than 1 banner exists) */}
+      {banners.length > 1 && (
+        <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2 z-20">
+          {banners.map((_, index) => (
+            <button
+              key={`banner-dot-${index}`}
+              type="button"
+              onClick={() => setSlideIndex(index)}
+              aria-label={`Go to slide ${index + 1}`}
+              className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                slideIndex === index
+                  ? 'w-6 sm:w-8 bg-brand-yellow shadow-md'
+                  : 'w-2 sm:w-2.5 bg-white/60 hover:bg-white'
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 };

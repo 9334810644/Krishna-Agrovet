@@ -3,6 +3,7 @@ import { TopBannerSlider } from '../components/home/TopBannerSlider';
 import { Hero } from '../components/home/Hero';
 import { ProductGrid } from '../components/products/ProductGrid';
 import { BrandStory } from '../components/home/BrandStory';
+import { FAQSection } from '../components/home/FAQSection';
 import { dataService } from '../lib/firebase';
 import { Product, Category } from '../types';
 
@@ -16,37 +17,20 @@ export const HomePage: React.FC<HomePageProps> = ({ searchQuery = '' }) => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const loadCatalog = async (showLoading = true) => {
-      if (showLoading) setLoading(true);
-      try {
-        const [prodList, catList] = await Promise.all([
-          dataService.getProducts(),
-          dataService.getCategories(),
-        ]);
-        setProducts(prodList);
-        setCategories(catList);
-      } catch (err) {
-        console.error('Error loading catalog data:', err);
-      } finally {
-        if (showLoading) setLoading(false);
-      }
-    };
+    setLoading(true);
 
-    loadCatalog(true);
+    const unsubProducts = dataService.subscribeProducts((list) => {
+      setProducts(list);
+      setLoading(false);
+    });
 
-    // Auto-update catalog when products are added/edited/deleted from owner portal
-    const handleCatalogUpdate = () => {
-      loadCatalog(false);
-    };
-
-    window.addEventListener('kav_products_changed', handleCatalogUpdate);
-    window.addEventListener('storage', handleCatalogUpdate);
-    window.addEventListener('focus', handleCatalogUpdate);
+    const unsubCategories = dataService.subscribeCategories((cats) => {
+      setCategories(cats);
+    });
 
     return () => {
-      window.removeEventListener('kav_products_changed', handleCatalogUpdate);
-      window.removeEventListener('storage', handleCatalogUpdate);
-      window.removeEventListener('focus', handleCatalogUpdate);
+      if (typeof unsubProducts === 'function') unsubProducts();
+      if (typeof unsubCategories === 'function') unsubCategories();
     };
   }, []);
 
@@ -66,6 +50,7 @@ export const HomePage: React.FC<HomePageProps> = ({ searchQuery = '' }) => {
         onProductUpdated={handleProductUpdated}
       />
       <BrandStory />
+      <FAQSection />
     </main>
   );
 };

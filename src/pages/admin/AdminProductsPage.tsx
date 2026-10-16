@@ -4,7 +4,7 @@ import { Product, Category } from '../../types';
 import { 
   Plus, Search, Edit3, EyeOff, Eye, 
   X, Save, Loader2, RefreshCw, Trash2, AlertTriangle,
-  UploadCloud, Image as ImageIcon, Camera, Link2
+  UploadCloud, Image as ImageIcon, Camera, Link2, CheckCircle2
 } from 'lucide-react';
 
 export const AdminProductsPage: React.FC = () => {
@@ -12,7 +12,6 @@ export const AdminProductsPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   // Modal State for Add / Edit
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -45,34 +44,72 @@ export const AdminProductsPage: React.FC = () => {
     low_stock_threshold: 10,
     description: '',
     short_description: '',
+    features: [] as string[],
     image_url: '/images/products/radhe-krishna-bypass-50kg.svg',
     crude_protein: '22.0%',
     crude_fat: '4.0%',
     crude_fiber: '9.5%',
     feeding_guide: 'Feed 400g per liter of cow milk; 500g per liter of buffalo milk.',
+    ingredients: '',
     featured: false,
     is_active: true,
   });
 
+  const handleAddFeature = () => {
+    setFormData(prev => ({
+      ...prev,
+      features: [...prev.features, ''],
+    }));
+  };
+
+  const handleFeatureChange = (index: number, val: string) => {
+    setFormData(prev => {
+      const updated = [...prev.features];
+      updated[index] = val;
+      return { ...prev, features: updated };
+    });
+  };
+
+  const handleRemoveFeature = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== index),
+    }));
+  };
+
+  useEffect(() => {
+    setLoading(true);
+
+    const unsubProducts = dataService.subscribeProducts((list) => {
+      setProducts(list);
+      setLoading(false);
+    });
+
+    const unsubCategories = dataService.subscribeCategories((cats) => {
+      setCategories(cats);
+    });
+
+    return () => {
+      if (typeof unsubProducts === 'function') unsubProducts();
+      if (typeof unsubCategories === 'function') unsubCategories();
+    };
+  }, []);
+
   const loadData = async () => {
     setLoading(true);
     try {
-      const [prodList, catList] = await Promise.all([
+      const [prods, cats] = await Promise.all([
         dataService.getProducts(),
         dataService.getCategories(),
       ]);
-      setProducts(prodList);
-      setCategories(catList);
+      setProducts(prods);
+      setCategories(cats);
     } catch (err) {
-      console.error('Failed to load products:', err);
+      console.error('Error reloading products:', err);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   const processImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -195,11 +232,18 @@ export const AdminProductsPage: React.FC = () => {
       low_stock_threshold: 10,
       description: '',
       short_description: '',
+      features: [
+        'Specially packaged in signature sealed feed bags with authentic formulation.',
+        'Optimal 22% - 24% protein balance designed to elevate daily milk quantity, FAT percentage, and SNF.',
+        '100% natural, digestible ingredients manufactured without synthetic urea or harmful adulterants.',
+        'Proven results for milking dairy cows and Murrah buffaloes across regional dairy farms.',
+      ],
       image_url: '/images/products/radhe-krishna-bypass-50kg.svg',
       crude_protein: '22.0%',
       crude_fat: '4.0%',
       crude_fiber: '9.5%',
       feeding_guide: '',
+      ingredients: 'Grains & Cereals, Mustard Oil Cake, De-Oiled Rice Bran, Cane Molasses, Bypass Fat, Chelated Minerals & Vitamins',
       featured: false,
       is_active: true,
     });
@@ -223,11 +267,18 @@ export const AdminProductsPage: React.FC = () => {
       low_stock_threshold: product.low_stock_threshold,
       description: product.description,
       short_description: product.short_description || '',
+      features: (product.features && product.features.length > 0)
+        ? [...product.features]
+        : (product.description ? product.description.split('\n').map(s => s.trim()).filter(Boolean) : [
+            'Specially packaged in signature sealed feed bags.',
+            'Optimal protein balance designed to elevate milk yield and butterfat.',
+          ]),
       image_url: product.image_url,
       crude_protein: product.nutritional_info?.crude_protein || '',
       crude_fat: product.nutritional_info?.crude_fat || '',
       crude_fiber: product.nutritional_info?.crude_fiber || '',
       feeding_guide: product.feeding_guide || '',
+      ingredients: (product.ingredients && product.ingredients.length > 0) ? product.ingredients.join(', ') : '',
       featured: product.featured,
       is_active: product.is_active,
     });
@@ -280,18 +331,28 @@ export const AdminProductsPage: React.FC = () => {
 
     setSaving(true);
     try {
+      const cleanedFeatures = formData.features
+        .map(f => f.trim())
+        .filter(Boolean);
+
+      const cleanedIngredients = formData.ingredients
+        ? formData.ingredients.split(/[,;\n]/).map(s => s.trim()).filter(Boolean)
+        : [];
+
       const payload: any = {
         name: formData.name.trim(),
-        brand: formData.brand.trim(),
-        sku: formData.sku.trim(),
-        category_id: formData.category_id,
+        brand: (formData.brand || editingProduct?.brand || 'Radhe Krishna (Krishna Agrovet)').trim(),
+        sku: (formData.sku || editingProduct?.sku || `RKPA-${Date.now().toString(36).toUpperCase()}`).trim(),
+        category_id: formData.category_id || editingProduct?.category_id || categories[0]?.id || '',
         bag_weight_kg: Number(formData.bag_weight_kg),
         price: 0,
         mrp: undefined,
         available_stock: Number(formData.available_stock),
         low_stock_threshold: Number(formData.low_stock_threshold),
-        description: formData.description.trim(),
-        short_description: formData.short_description.trim(),
+        description: formData.description.trim() || cleanedFeatures.join('. '),
+        short_description: formData.short_description.trim() || (cleanedFeatures[0] || ''),
+        features: cleanedFeatures,
+        ingredients: cleanedIngredients,
         image_url: formData.image_url.trim(),
         nutritional_info: {
           crude_protein: formData.crude_protein,
@@ -326,7 +387,6 @@ export const AdminProductsPage: React.FC = () => {
 
   // Filter products
   const filteredProducts = products.filter(p => {
-    if (selectedCategory !== 'all' && p.category_id !== selectedCategory) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return (
@@ -375,25 +435,14 @@ export const AdminProductsPage: React.FC = () => {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-muted" />
           <input
             type="text"
-            placeholder="Search by feed name, brand, SKU..."
+            placeholder="Search products by title..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-warm-cream border border-warm-cream-dark rounded-xl text-xs text-deep-charcoal focus:outline-hidden focus:ring-2 focus:ring-krishna-red font-medium"
           />
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-xs bg-warm-cream border border-warm-cream-dark rounded-xl px-3 py-2 text-deep-charcoal focus:outline-hidden font-bold cursor-pointer"
-          >
-            <option value="all">All Categories</option>
-            {categories.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
           <button
             type="button"
             onClick={loadData}
@@ -409,11 +458,11 @@ export const AdminProductsPage: React.FC = () => {
       {/* Products Table */}
       <div className="bg-white rounded-3xl border-2 border-warm-cream-dark shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[640px] text-left text-xs">
             <thead className="bg-warm-cream text-deep-charcoal font-black border-b border-warm-cream-dark uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="py-3 px-4">Product Details</th>
-                <th className="py-3 px-4">SKU & Weight</th>
+                <th className="py-3 px-4">Bag Weight</th>
                 <th className="py-3 px-4">Available Stock</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4 text-right">Actions</th>
@@ -423,7 +472,7 @@ export const AdminProductsPage: React.FC = () => {
               {filteredProducts.map((prod) => (
                 <tr key={prod.id} className="hover:bg-warm-cream/30 transition-colors">
                   
-                  {/* Title & Brand */}
+                  {/* Title */}
                   <td className="py-3.5 px-4 flex items-center gap-3">
                     <img
                       src={prod.image_url}
@@ -434,16 +483,12 @@ export const AdminProductsPage: React.FC = () => {
                       <span className="font-bold text-deep-charcoal block truncate max-w-xs sm:max-w-sm">
                         {prod.name}
                       </span>
-                      <span className="text-[11px] text-charcoal-muted block">
-                        Brand: <strong>{prod.brand}</strong>
-                      </span>
                     </div>
                   </td>
 
-                  {/* SKU & Bag Weight */}
-                  <td className="py-3.5 px-4 font-mono">
-                    <span className="text-deep-charcoal block font-semibold">{prod.sku}</span>
-                    <span className="text-krishna-red text-[11px] font-sans font-bold">{prod.bag_weight_kg || 50} kg Bag</span>
+                  {/* Bag Weight */}
+                  <td className="py-3.5 px-4">
+                    <span className="text-krishna-red text-xs font-bold">{prod.bag_weight_kg || 50} kg Bag</span>
                   </td>
 
                   {/* Stock */}
@@ -550,58 +595,17 @@ export const AdminProductsPage: React.FC = () => {
 
             <form onSubmit={handleSubmitModal} className="p-5 sm:p-6 space-y-4 text-xs">
               
-              {/* Product Name & Brand */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="font-bold text-deep-charcoal">Product Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g. Radhe Krishna Bypass Protein (बाईपास)"
-                    className="w-full px-3 py-2 rounded-xl border border-warm-cream-dark bg-warm-cream/40 text-xs focus:ring-1 focus:ring-krishna-red font-medium"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-deep-charcoal">Brand Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    placeholder="e.g. Radhe Krishna (Krishna Agrovet)"
-                    className="w-full px-3 py-2 rounded-xl border border-warm-cream-dark bg-warm-cream/40 text-xs focus:ring-1 focus:ring-krishna-red font-medium"
-                  />
-                </div>
-              </div>
-
-              {/* SKU & Category */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="font-bold text-deep-charcoal">SKU / Product Code *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-warm-cream-dark bg-warm-cream/40 text-xs font-mono focus:ring-1 focus:ring-krishna-red"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-deep-charcoal">Category *</label>
-                  <select
-                    value={formData.category_id}
-                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-warm-cream-dark bg-warm-cream/40 text-xs focus:ring-1 focus:ring-krishna-red font-semibold cursor-pointer"
-                  >
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
+              {/* Product Name */}
+              <div className="space-y-1">
+                <label className="font-bold text-deep-charcoal">Product Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g. Radhe Krishna Bypass Protein (बाईपास)"
+                  className="w-full px-3 py-2 rounded-xl border border-warm-cream-dark bg-warm-cream/40 text-xs focus:ring-1 focus:ring-krishna-red font-medium"
+                />
               </div>
 
               {/* Bag Weight & WhatsApp Pricing Note */}
@@ -657,15 +661,75 @@ export const AdminProductsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Description & Short Description */}
+              {/* Description & Key Features (Checklist style as displayed in product modal) */}
+              <div className="bg-warm-cream/50 p-4 rounded-2xl border-2 border-warm-cream-dark space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <label className="font-black text-deep-charcoal text-xs uppercase tracking-wider flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Description & Key Features</span>
+                    </label>
+                    <span className="text-[10px] text-charcoal-muted block mt-0.5">
+                      Checklist points displayed on product cards and in the product detail view.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddFeature}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-warm-cream border border-warm-cream-dark text-deep-charcoal rounded-xl text-xs font-bold shadow-2xs transition-all cursor-pointer active:scale-98 shrink-0"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Add Point</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2.5 pt-1">
+                  {formData.features.map((feature, idx) => (
+                    <div key={idx} className="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-warm-cream-dark shadow-2xs">
+                      <div className="w-5 h-5 rounded-full bg-stone-700 text-white flex items-center justify-center shrink-0 mt-1 shadow-2xs">
+                        <span className="text-[10px] font-black leading-none">✓</span>
+                      </div>
+                      <textarea
+                        rows={2}
+                        value={feature}
+                        onChange={(e) => handleFeatureChange(idx, e.target.value)}
+                        placeholder={`Bullet point ${idx + 1} (e.g. Specially packaged in signature red and yellow bags...)`}
+                        className="flex-1 px-3 py-1.5 rounded-lg border border-warm-cream-dark bg-warm-cream/20 text-xs font-medium focus:ring-1 focus:ring-krishna-red resize-y text-deep-charcoal leading-relaxed"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFeature(idx)}
+                        className="p-1.5 text-charcoal-muted hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer mt-1"
+                        title="Remove point"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {formData.features.length === 0 && (
+                    <div className="p-4 bg-white rounded-xl border border-dashed border-warm-cream-dark text-center">
+                      <p className="text-xs text-charcoal-muted font-medium">No key feature points added.</p>
+                      <button
+                        type="button"
+                        onClick={handleAddFeature}
+                        className="mt-1 text-xs text-krishna-red font-bold hover:underline"
+                      >
+                        + Add the first key feature bullet point
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Additional Notes Textarea (Optional) */}
               <div className="space-y-1">
-                <label className="font-bold text-deep-charcoal">Full Description *</label>
+                <label className="font-bold text-deep-charcoal">Additional Formulation Notes (Optional)</label>
                 <textarea
                   rows={2}
-                  required
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Detailed formulation, bypass protein content, rumen health benefits..."
+                  placeholder="Additional formulation details or fallback text..."
                   className="w-full px-3 py-2 rounded-xl border border-warm-cream-dark bg-warm-cream/40 text-xs focus:ring-1 focus:ring-krishna-red font-medium"
                 />
               </div>
@@ -781,39 +845,6 @@ export const AdminProductsPage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Official Packaging Presets */}
-                    <div className="pt-1.5 border-t border-warm-cream-dark">
-                      <span className="text-[10px] font-black uppercase text-charcoal-muted tracking-wider block mb-1">
-                        Or Pick Official Packaging:
-                      </span>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, image_url: '/images/products/radhe-krishna-bypass-50kg.svg' }))}
-                          className={`p-1.5 text-left rounded-xl border text-[10px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                            formData.image_url === '/images/products/radhe-krishna-bypass-50kg.svg'
-                              ? 'border-krishna-red bg-krishna-red/10 text-krishna-red font-black ring-1 ring-krishna-red'
-                              : 'border-warm-cream-dark bg-white hover:bg-warm-cream text-deep-charcoal'
-                          }`}
-                        >
-                          <span className="w-2.5 h-2.5 rounded-full bg-krishna-red shrink-0" />
-                          <span className="truncate">Bypass (Red Bag)</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, image_url: '/images/products/radhe-krishna-ekstrapro-50kg.svg' }))}
-                          className={`p-1.5 text-left rounded-xl border text-[10px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                            formData.image_url === '/images/products/radhe-krishna-ekstrapro-50kg.svg'
-                              ? 'border-feed-turquoise bg-feed-turquoise/10 text-feed-turquoise-dark font-black ring-1 ring-feed-turquoise'
-                              : 'border-warm-cream-dark bg-white hover:bg-warm-cream text-deep-charcoal'
-                          }`}
-                        >
-                          <span className="w-2.5 h-2.5 rounded-full bg-feed-turquoise shrink-0" />
-                          <span className="truncate">Ekstrapro (Turq Bag)</span>
-                        </button>
-                      </div>
-                    </div>
 
                     {/* Manual URL toggle */}
                     <div className="pt-0.5">
@@ -893,6 +924,50 @@ export const AdminProductsPage: React.FC = () => {
                   placeholder="Feed 400g per liter of cow milk; 500g per liter of buffalo milk."
                   className="w-full px-3 py-2 rounded-xl border border-warm-cream-dark bg-warm-cream/40 text-xs"
                 />
+              </div>
+
+              {/* Product Ingredients */}
+              <div className="space-y-2 bg-emerald-50/50 p-3.5 rounded-2xl border border-emerald-200/80">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-emerald-950 text-xs flex items-center gap-1.5">
+                    <span className="text-sm">🌾</span>
+                    <span>Product Ingredients / मुख्य सामग्री</span>
+                  </label>
+                  <span className="text-[10px] text-emerald-700 font-semibold">
+                    Separate by commas (,) or newlines
+                  </span>
+                </div>
+                <textarea
+                  rows={2}
+                  value={formData.ingredients}
+                  onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
+                  placeholder="e.g. Grains & Cereals, Mustard Oil Cake, De-Oiled Rice Bran, Cane Molasses, Rumen Protected Bypass Fat, Minerals & Vitamins"
+                  className="w-full px-3 py-2 rounded-xl border border-emerald-300/80 bg-white text-xs text-deep-charcoal focus:ring-1 focus:ring-emerald-600 font-medium leading-relaxed"
+                />
+                
+                {/* Live Ingredients Badges Preview */}
+                {formData.ingredients && formData.ingredients.trim() && (
+                  <div className="pt-1">
+                    <span className="text-[10px] text-charcoal-muted uppercase font-bold block mb-1">
+                      Live Preview on Homepage & Details:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {formData.ingredients
+                        .split(/[,;\n]/)
+                        .map(s => s.trim())
+                        .filter(Boolean)
+                        .map((ing, i) => (
+                          <span
+                            key={i}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold bg-white text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-lg shadow-2xs"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                            <span>{ing}</span>
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Flags: Featured & Active */}

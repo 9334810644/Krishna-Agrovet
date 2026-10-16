@@ -3,7 +3,7 @@ import { Product, Category } from '../../types';
 import { ProductCard } from './ProductCard';
 import { ProductDetailModal } from './ProductDetailModal';
 import { useLanguage } from '../../context/LanguageContext';
-import { Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 interface ProductGridProps {
   products: Product[];
@@ -15,16 +15,15 @@ interface ProductGridProps {
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
   products,
-  categories,
+  categories: _categories,
   searchQuery,
   loading = false,
   onProductUpdated,
 }) => {
   const { t } = useLanguage();
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedProductForModal, setSelectedProductForModal] = useState<Product | null>(null);
 
-  // Filtered products (by Category & Search)
+  // Filtered products (by Search)
   const filteredProducts = useMemo(() => {
     return products
       .filter(p => {
@@ -40,11 +39,6 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           if (!matchName && !matchBrand && !matchDesc && !matchSku) return false;
         }
 
-        // Category filter
-        if (selectedCategory !== 'all' && p.category_id !== selectedCategory) {
-          return false;
-        }
-
         return true;
       })
       .sort((a, b) => {
@@ -53,10 +47,10 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         if (!a.featured && b.featured) return 1;
         return a.name.localeCompare(b.name);
       });
-  }, [products, searchQuery, selectedCategory]);
+  }, [products, searchQuery]);
 
   const handleResetFilters = () => {
-    setSelectedCategory('all');
+    window.location.href = '/#products';
   };
 
   return (
@@ -66,10 +60,6 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-krishna-red bg-white border border-krishna-red/20 px-3.5 py-1 rounded-full mb-2 shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 text-brand-yellow-dark" />
-              <span>KRISHNA AGROVET • AUTHENTIC CATTLE FEED</span>
-            </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-deep-charcoal font-heading tracking-tight">
               {t('catalogTitle')}
             </h2>
@@ -85,57 +75,33 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           </div>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-8 scrollbar-none">
-          <button
-            type="button"
-            onClick={() => setSelectedCategory('all')}
-            className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold shrink-0 transition-all cursor-pointer ${
-              selectedCategory === 'all'
-                ? 'bg-krishna-red text-white shadow-md'
-                : 'bg-white text-deep-charcoal border border-warm-cream-dark hover:bg-warm-cream-surface'
-            }`}
-          >
-            {t('filterAll')} ({products.filter(p => p.is_active).length})
-          </button>
-          {categories.map((cat) => {
-            const count = products.filter(p => p.is_active && p.category_id === cat.id).length;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold shrink-0 transition-all cursor-pointer ${
-                  selectedCategory === cat.id
-                    ? 'bg-krishna-red text-white shadow-md'
-                    : 'bg-white text-deep-charcoal border border-warm-cream-dark hover:bg-warm-cream-surface'
-                }`}
-              >
-                {cat.name} ({count})
-              </button>
-            );
-          })}
-        </div>
 
         {/* Loading Skeletons */}
         {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[1, 2].map((n) => (
               <div key={n} className="bg-white rounded-3xl border-2 border-warm-cream-dark overflow-hidden shadow-xs">
-                <div className="aspect-4/3 animate-shimmer" />
-                <div className="p-4 space-y-3">
-                  <div className="h-4 animate-shimmer rounded-md w-3/4" />
-                  <div className="h-3 animate-shimmer rounded-md w-1/2" />
-                  <div className="h-9 animate-shimmer rounded-xl mt-2" />
+                <div className="h-72 sm:h-80 animate-shimmer" />
+                <div className="p-6 space-y-4">
+                  <div className="h-6 animate-shimmer rounded-md w-3/4" />
+                  <div className="h-4 animate-shimmer rounded-md w-full" />
+                  <div className="h-4 animate-shimmer rounded-md w-5/6" />
+                  <div className="h-16 animate-shimmer rounded-xl mt-4" />
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Products Grid */}
+        {/* Products Grid - Fills available container area */}
         {!loading && filteredProducts.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className={`grid gap-8 ${
+            filteredProducts.length === 1 
+              ? 'grid-cols-1 max-w-3xl mx-auto' 
+              : filteredProducts.length === 2 
+              ? 'grid-cols-1 md:grid-cols-2' 
+              : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+          }`}>
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}

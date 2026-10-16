@@ -182,7 +182,7 @@ export const CheckoutPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* Form Fields Column */}
-            <div className="lg:col-span-7 bg-white rounded-3xl border-2 border-warm-cream-dark p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="lg:col-span-7 bg-white rounded-3xl border-2 border-warm-cream-dark p-4 sm:p-8 shadow-sm space-y-6">
               
               <div className="border-b border-warm-cream-dark pb-3 flex items-center justify-between">
                 <h2 className="text-base sm:text-lg font-black font-heading text-deep-charcoal flex items-center gap-2">
@@ -441,21 +441,21 @@ export const CheckoutPage: React.FC = () => {
                 <label className="block text-xs font-black text-deep-charcoal uppercase tracking-wider mb-2">
                   {t('paymentLabel')}
                 </label>
-                <div className="p-4 bg-warm-cream border-2 border-brand-yellow rounded-2xl flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-krishna-red flex items-center justify-center text-white">
+                <div className="p-3.5 sm:p-4 bg-warm-cream border-2 border-brand-yellow rounded-2xl flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-5 h-5 rounded-full bg-krishna-red flex items-center justify-center text-white shrink-0">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
-                    <div>
-                      <span className="block text-sm font-black text-deep-charcoal">
+                    <div className="min-w-0">
+                      <span className="block text-xs sm:text-sm font-black text-deep-charcoal truncate sm:whitespace-normal">
                         {t('codText')}
                       </span>
-                      <span className="block text-xs text-charcoal-muted">
+                      <span className="block text-[11px] sm:text-xs text-charcoal-muted leading-tight mt-0.5">
                         Pay cash directly to our delivery tempo driver after inspecting bags.
                       </span>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-krishna-red bg-white px-2.5 py-1 rounded-md border border-warm-cream-dark">
+                  <span className="text-xs font-bold text-krishna-red bg-white px-2.5 py-1 rounded-md border border-warm-cream-dark shrink-0">
                     COD
                   </span>
                 </div>
@@ -466,8 +466,8 @@ export const CheckoutPage: React.FC = () => {
             {/* Right Summary Column */}
             <div className="lg:col-span-5 space-y-5">
               
-              <div className="bg-white rounded-3xl border-2 border-warm-cream-dark p-6 shadow-md space-y-4 sticky top-24">
-                <h3 className="text-lg font-black font-heading text-deep-charcoal border-b border-warm-cream-dark pb-3">
+              <div className="bg-white rounded-3xl border-2 border-warm-cream-dark p-4 sm:p-6 shadow-md space-y-4 sticky top-24">
+                <h3 className="text-base sm:text-lg font-black font-heading text-deep-charcoal border-b border-warm-cream-dark pb-3">
                   Order Bags Summary
                 </h3>
 
@@ -492,7 +492,7 @@ export const CheckoutPage: React.FC = () => {
                       </div>
 
                       <div className="text-right shrink-0">
-                        <span className="text-[11px] font-bold text-krishna-red bg-krishna-red/10 px-2 py-0.5 rounded">
+                        <span className="text-[10px] sm:text-[11px] font-bold text-krishna-red bg-krishna-red/10 px-2 py-0.5 rounded">
                           Rate on WhatsApp
                         </span>
                       </div>
@@ -516,9 +516,9 @@ export const CheckoutPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center pt-3 border-t border-warm-cream-dark text-xs sm:text-sm font-black text-deep-charcoal">
+                  <div className="flex flex-wrap justify-between items-center gap-1 pt-3 border-t border-warm-cream-dark text-xs sm:text-sm font-black text-deep-charcoal">
                     <span>कीमत / Pricing:</span>
-                    <span className="text-krishna-red font-heading font-black">
+                    <span className="text-krishna-red font-heading font-black text-xs sm:text-sm">
                       व्हाट्सएप पर चर्चा / Rate on WhatsApp
                     </span>
                   </div>

@@ -5,10 +5,10 @@ import { Lock, Mail, ArrowRight, Loader2, AlertCircle, ArrowLeft, Key } from 'lu
 
 export const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, loginAsDemoAdmin, isDemoMode, isAdmin } = useAuth();
+  const { login, loginAsDemoAdmin, isAdmin } = useAuth();
 
-  const [email, setEmail] = useState<string>('admin@krishnaagrovet.com');
-  const [password, setPassword] = useState<string>('admin123');
+  const [email, setEmail] = useState<string>('krishnaagrovet@gmail.com');
+  const [password, setPassword] = useState<string>('Krishna@169#');
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -37,9 +37,22 @@ export const AdminLoginPage: React.FC = () => {
     }
   };
 
-  const handleQuickDemoLogin = () => {
-    loginAsDemoAdmin();
-    navigate('/admin', { replace: true });
+  const handleQuickDemoLogin = async () => {
+    setLoading(true);
+    try {
+      const res = await login('krishnaagrovet@gmail.com', 'Krishna@169#');
+      if (res.success) {
+        navigate('/admin', { replace: true });
+      } else {
+        loginAsDemoAdmin();
+        navigate('/admin', { replace: true });
+      }
+    } catch {
+      loginAsDemoAdmin();
+      navigate('/admin', { replace: true });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,7 +73,7 @@ export const AdminLoginPage: React.FC = () => {
         </Link>
       </div>
 
-      <div className="max-w-md w-full mx-auto bg-[#292820] border border-amber-900/30 rounded-3xl p-8 shadow-2xl space-y-6 relative z-10">
+      <div className="max-w-md w-full mx-auto bg-[#292820] border border-amber-900/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 relative z-10">
         
         {/* Header Icon & Brand Header */}
         <div className="text-center space-y-2">
@@ -84,26 +97,25 @@ export const AdminLoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Demo Mode Notice */}
-        {isDemoMode && (
-          <div className="bg-[#382705] border border-[#F5C900]/40 p-4 rounded-2xl text-xs text-amber-100 space-y-2.5">
-            <div className="flex items-center gap-1.5 font-bold text-[#F5C900]">
-              <Key className="w-4 h-4" />
-              <span>Interactive Demo Admin Access</span>
-            </div>
-            <p className="text-amber-100/80 leading-relaxed text-[11px]">
-              Use prefilled credentials below or tap the quick login button to manage cattle feed products, stock quantities, and customer orders.
-            </p>
-            <button
-              type="button"
-              onClick={handleQuickDemoLogin}
-              className="w-full py-2.5 px-3 bg-[#F5C900] hover:bg-amber-400 text-[#292820] font-black rounded-xl transition-all shadow-md text-xs flex items-center justify-center gap-1.5 active:scale-98"
-            >
-              <span>One-Click Demo Admin Login</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+        {/* Owner Login Quick Access */}
+        <div className="bg-[#382705] border border-[#F5C900]/40 p-4 rounded-2xl text-xs text-amber-100 space-y-2.5">
+          <div className="flex items-center gap-1.5 font-bold text-[#F5C900]">
+            <Key className="w-4 h-4" />
+            <span>Store Owner Administrator Access</span>
           </div>
-        )}
+          <p className="text-amber-100/80 leading-relaxed text-[11px]">
+            Owner email <code className="bg-black/40 text-[#F5C900] px-1.5 py-0.5 rounded font-mono font-bold">krishnaagrovet@gmail.com</code> is pre-filled. Tap below to log in immediately.
+          </p>
+          <button
+            type="button"
+            onClick={handleQuickDemoLogin}
+            disabled={loading}
+            className="w-full py-2.5 px-3 bg-[#F5C900] hover:bg-amber-400 text-[#292820] font-black rounded-xl transition-all shadow-md text-xs flex items-center justify-center gap-1.5 active:scale-98 cursor-pointer disabled:opacity-50"
+          >
+            <span>One-Click Owner Login</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
 
         {errorMsg && (
           <div className="p-3.5 rounded-2xl bg-rose-950/80 border border-rose-800 text-rose-200 text-xs flex items-start gap-2.5">
@@ -125,7 +137,7 @@ export const AdminLoginPage: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@krishnaagrovet.com"
+                placeholder="krishnaagrovet@gmail.com"
                 className="w-full pl-10 pr-3.5 py-2.5 bg-[#1F1E19] border border-stone-700 rounded-xl text-sm text-white placeholder:text-stone-600 focus:outline-hidden focus:border-[#F5C900] focus:ring-1 focus:ring-[#F5C900]"
               />
             </div>

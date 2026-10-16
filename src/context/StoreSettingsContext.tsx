@@ -16,24 +16,33 @@ export const StoreSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   const [settings, setSettings] = useState<StoreSettings>(INITIAL_STORE_SETTINGS);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const fetchSettings = async () => {
-    try {
-      const data = await dataService.getSettings();
-      setSettings(data);
-    } catch (err) {
-      console.error('Failed to load store settings:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchSettings();
+    setLoading(true);
+    const unsubscribe = dataService.subscribeSettings((fresh) => {
+      setSettings(fresh);
+      setLoading(false);
+    });
+
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
   }, []);
 
   const updateSettings = async (newSettings: Partial<StoreSettings>) => {
     const updated = await dataService.updateSettings(newSettings);
     setSettings(updated);
+  };
+
+  const refreshSettings = async () => {
+    setLoading(true);
+    try {
+      const fresh = await dataService.getSettings();
+      setSettings(fresh);
+    } catch (err) {
+      console.error('Error refreshing settings:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,7 +51,7 @@ export const StoreSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
         settings,
         loading,
         updateSettings,
-        refreshSettings: fetchSettings,
+        refreshSettings,
       }}
     >
       {children}

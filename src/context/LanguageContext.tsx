@@ -74,7 +74,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     addBagBtn: 'कार्ट में जोड़ें',
     addedBtn: 'जोड़ा गया!',
     maxInCart: 'कार्ट सीमा',
-    viewDetails: 'पोषण विवरण व खुराक विधि देखें',
+    viewDetails: 'पोषण विवरण व सामग्री देखें',
     noProductsFound: 'कोई उत्पाद आपके फिल्टर से मेल नहीं खाता',
     resetFilters: 'सभी फिल्टर हटाएं',
 
@@ -280,7 +280,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     addBagBtn: 'Add Bag(s)',
     addedBtn: 'Added!',
     maxInCart: 'Max in Cart',
-    viewDetails: 'View Nutritional Breakdown & Feeding Guide',
+    viewDetails: 'View Nutritional Breakdown & Specifications',
     noProductsFound: 'No cattle feed matches your filters',
     resetFilters: 'Reset All Filters',
 

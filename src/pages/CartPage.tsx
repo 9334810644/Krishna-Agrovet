@@ -82,40 +82,42 @@ export const CartPage: React.FC = () => {
               {/* Items Card */}
               <div className="bg-white rounded-3xl border-2 border-warm-cream-dark overflow-hidden shadow-sm divide-y divide-warm-cream-dark">
                 {items.map(({ product, quantity }) => (
-                  <div key={product.id} className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-20 h-20 rounded-2xl object-contain bg-warm-cream p-1 shrink-0 border border-warm-cream-dark"
-                    />
+                  <div key={product.id} className="p-3.5 sm:p-6 flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center">
+                    <div className="flex items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto flex-1 min-w-0">
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-contain bg-warm-cream p-1 shrink-0 border border-warm-cream-dark"
+                      />
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-black text-krishna-red tracking-wider">
-                          {product.brand?.includes('Krishna') ? 'KRISHNA AGROVET' : product.brand}
-                        </span>
-                        <span className="text-xs text-charcoal-muted">•</span>
-                        <span className="text-xs text-charcoal-muted font-bold">
-                          {product.bag_weight_kg || 50}kg Standard Sack
-                        </span>
-                      </div>
-                      <h3 className="text-sm sm:text-base font-bold text-deep-charcoal font-heading truncate mt-0.5">
-                        {product.name}
-                      </h3>
-                      
-                      {/* Bag count & Rate info */}
-                      <div className="flex items-center gap-3 mt-1.5">
-                        <span className="text-xs font-bold text-charcoal-muted">
-                          {quantity} × {product.bag_weight_kg || 50}kg Sack ({quantity * (product.bag_weight_kg || 50)} kg)
-                        </span>
-                        <span className="text-xs font-bold text-krishna-red bg-krishna-red/10 px-2 py-0.5 rounded-md">
-                          Rate on WhatsApp
-                        </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                          <span className="text-[10px] uppercase font-black text-krishna-red tracking-wider">
+                            {product.brand?.includes('Krishna') ? 'KRISHNA AGROVET' : product.brand}
+                          </span>
+                          <span className="text-xs text-charcoal-muted">•</span>
+                          <span className="text-[11px] sm:text-xs text-charcoal-muted font-bold">
+                            {product.bag_weight_kg || 50}kg Standard Sack
+                          </span>
+                        </div>
+                        <h3 className="text-xs sm:text-base font-bold text-deep-charcoal font-heading line-clamp-2 sm:truncate mt-0.5">
+                          {product.name}
+                        </h3>
+                        
+                        {/* Bag count & Rate info */}
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1">
+                          <span className="text-[11px] sm:text-xs font-bold text-charcoal-muted">
+                            {quantity} × {product.bag_weight_kg || 50}kg Sack ({quantity * (product.bag_weight_kg || 50)} kg)
+                          </span>
+                          <span className="text-[10px] sm:text-xs font-bold text-krishna-red bg-krishna-red/10 px-2 py-0.5 rounded-md">
+                            Rate on WhatsApp
+                          </span>
+                        </div>
                       </div>
                     </div>
 
                     {/* Stepper & Sack Weight */}
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-3">
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-warm-cream-dark">
                       <div className="flex items-center border-2 border-warm-cream-dark rounded-xl bg-warm-cream overflow-hidden">
                         <button
                           type="button"
@@ -160,8 +162,8 @@ export const CartPage: React.FC = () => {
             </div>
 
             {/* Right Col: Order Summary Box */}
-            <div className="lg:col-span-4 bg-white rounded-3xl border-2 border-warm-cream-dark p-6 shadow-md space-y-5 sticky top-24">
-              <h2 className="text-lg font-black font-heading text-deep-charcoal border-b border-warm-cream-dark pb-3">
+            <div className="lg:col-span-4 bg-white rounded-3xl border-2 border-warm-cream-dark p-4 sm:p-6 shadow-md space-y-5 sticky top-24">
+              <h2 className="text-base sm:text-lg font-black font-heading text-deep-charcoal border-b border-warm-cream-dark pb-3">
                 {t('cartTitle')}
               </h2>
 
@@ -188,9 +190,9 @@ export const CartPage: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center pt-3 border-t border-warm-cream-dark text-sm sm:text-base font-black text-deep-charcoal">
+                <div className="flex flex-wrap justify-between items-center gap-1 pt-3 border-t border-warm-cream-dark text-xs sm:text-base font-black text-deep-charcoal">
                   <span>कीमत / Pricing:</span>
-                  <span className="text-krishna-red font-heading font-black">
+                  <span className="text-krishna-red font-heading font-black text-xs sm:text-sm">
                     व्हाट्सएप पर चर्चा / Rate on WhatsApp
                   </span>
                 </div>

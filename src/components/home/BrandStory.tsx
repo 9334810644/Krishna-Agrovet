@@ -38,28 +38,28 @@ export const BrandStory: React.FC = () => {
   ];
 
   return (
-    <section id="about" className="py-16 sm:py-20 lg:py-24 bg-white border-b border-warm-cream-dark">
+    <section id="about" className="py-10 sm:py-20 lg:py-24 bg-white border-b border-warm-cream-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
           
           {/* Left Column: Authentic Farm Image with Decorative Frame */}
           <div className="lg:col-span-5 order-2 lg:order-1">
-            <div className="relative mx-auto max-w-md lg:max-w-none">
+            <div className="relative mx-auto max-w-md lg:max-w-none group">
               
-              {/* Decorative Frame Underlay in Krishna Red & Brand Yellow */}
-              <div className="absolute -inset-3 bg-gradient-to-tr from-krishna-red via-brand-yellow to-feed-turquoise rounded-3xl opacity-20 transform -rotate-1" />
+              {/* Decorative Frame Underlay with shifting gradient */}
+              <div className="absolute -inset-2 sm:-inset-3 bg-gradient-to-tr from-krishna-red via-brand-yellow to-feed-turquoise rounded-2xl sm:rounded-3xl opacity-30 animate-gradient-shift transform -rotate-1 blur-xs" />
               
-              <div className="relative rounded-3xl overflow-hidden border-2 border-warm-cream-dark shadow-xl bg-warm-cream">
+              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-warm-cream-dark shadow-xl bg-warm-cream">
                 <img
                   src="/images/brand-about.jpg"
                   alt="Farmer with dairy cattle and feed sacks"
-                  className="w-full h-80 sm:h-96 object-cover object-center"
+                  className="w-full h-64 sm:h-96 object-cover object-center group-hover:scale-104 transition-transform duration-700 ease-out"
                   loading="lazy"
                 />
                 
                 {/* Brand Badge Overlay on Image */}
-                <div className="absolute bottom-4 left-4 right-4 bg-deep-charcoal/90 text-white p-3.5 rounded-2xl backdrop-blur-md border border-brand-yellow/40 flex items-center justify-between">
+                <div className="absolute bottom-4 left-4 right-4 bg-deep-charcoal/90 text-white p-3.5 rounded-2xl backdrop-blur-md border border-brand-yellow/40 flex items-center justify-between shadow-lg">
                   <div>
                     <span className="block text-[11px] font-black uppercase text-brand-yellow tracking-wider">
                       KRISHNA AGROVET
@@ -68,7 +68,7 @@ export const BrandStory: React.FC = () => {
                       {t('brandName')}
                     </span>
                   </div>
-                  <span className="bg-krishna-red text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
+                  <span className="bg-krishna-red text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-xs animate-pulse">
                     {lang === 'hi' ? 'उच्च गुणवत्ता' : 'PREMIUM FEED'}
                   </span>
                 </div>
@@ -112,7 +112,7 @@ export const BrandStory: React.FC = () => {
                     key={index}
                     className="p-3.5 rounded-2xl bg-warm-cream/70 border border-warm-cream-dark flex items-start gap-3 hover:bg-white card-hover-lift transition-all cursor-default group"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-white border border-warm-cream-dark flex items-center justify-center text-krishna-red shrink-0 shadow-xs group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-10 h-10 rounded-xl bg-white border border-warm-cream-dark flex items-center justify-center text-krishna-red shrink-0 shadow-xs group-hover:scale-115 group-hover:rotate-6 group-hover:bg-brand-yellow/30 transition-all duration-300">
                       <Icon className="w-5 h-5" />
                     </div>
                     <div>
@@ -133,7 +133,7 @@ export const BrandStory: React.FC = () => {
 
             {/* Registered Office & Mill Information Card */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <div className="p-3.5 rounded-2xl bg-warm-cream/80 border border-warm-cream-dark flex items-start gap-3">
+              <div className="p-3.5 rounded-2xl bg-warm-cream/80 border border-warm-cream-dark flex items-start gap-3 card-hover-lift transition-all">
                 <Building2 className="w-5 h-5 text-krishna-red shrink-0 mt-0.5" />
                 <div>
                   <span className="block text-[11px] font-black text-krishna-red uppercase tracking-wider">
@@ -145,7 +145,7 @@ export const BrandStory: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-warm-cream/80 border border-warm-cream-dark flex items-start gap-3">
+              <div className="p-3.5 rounded-2xl bg-warm-cream/80 border border-warm-cream-dark flex items-start gap-3 card-hover-lift transition-all">
                 <Factory className="w-5 h-5 text-feed-turquoise shrink-0 mt-0.5" />
                 <div>
                   <span className="block text-[11px] font-black text-feed-turquoise-dark uppercase tracking-wider">
@@ -168,7 +168,7 @@ export const BrandStory: React.FC = () => {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-brand-yellow hover:bg-brand-yellow-light text-deep-charcoal font-black px-6 py-3.5 rounded-xl text-sm shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 border-2 border-brand-yellow-dark cursor-pointer"
+                className="inline-flex items-center justify-center w-full sm:w-auto gap-2 bg-brand-yellow hover:bg-brand-yellow-light text-deep-charcoal font-black px-6 py-3.5 rounded-xl text-sm shadow-md glow-amber-hover transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 border-2 border-brand-yellow-dark cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4 text-deep-charcoal" />
                 <span>{t('aboutCtaWhatsApp')}</span>

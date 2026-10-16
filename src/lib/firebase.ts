@@ -1,7 +1,8 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
   getFirestore, collection, doc, getDoc, getDocs, setDoc, 
-  updateDoc, deleteDoc, query, where, orderBy, limit, runTransaction 
+  updateDoc, deleteDoc, query, where, orderBy, limit, runTransaction,
+  onSnapshot, Unsubscribe
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { 
@@ -10,52 +11,174 @@ import {
 } from '../types';
 import { LocalStoreManager, generateMockOrderNumber } from './mockStore';
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+export interface FirebaseConnectionConfig {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
+  measurementId?: string;
+}
+
+export const getFirebaseConfig = (): FirebaseConnectionConfig => {
+  let customConfig: Partial<FirebaseConnectionConfig> = {};
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('kav_firebase_config');
+      if (stored) {
+        customConfig = JSON.parse(stored);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return {
+    apiKey: (customConfig.apiKey || import.meta.env.VITE_FIREBASE_API_KEY || '').trim(),
+    authDomain: (customConfig.authDomain || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '').trim(),
+    projectId: (customConfig.projectId || import.meta.env.VITE_FIREBASE_PROJECT_ID || '').trim(),
+    storageBucket: (customConfig.storageBucket || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '').trim(),
+    messagingSenderId: (customConfig.messagingSenderId || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '').trim(),
+    appId: (customConfig.appId || import.meta.env.VITE_FIREBASE_APP_ID || '').trim(),
+    measurementId: (customConfig.measurementId || import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || '').trim(),
+  };
 };
 
 export const isFirebaseConfigured = (): boolean => {
+  const cfg = getFirebaseConfig();
   return (
-    typeof firebaseConfig.apiKey === 'string' &&
-    firebaseConfig.apiKey.trim().length > 0 &&
-    typeof firebaseConfig.projectId === 'string' &&
-    firebaseConfig.projectId.trim().length > 0 &&
-    !firebaseConfig.projectId.includes('your-project-id')
+    typeof cfg.apiKey === 'string' &&
+    cfg.apiKey.length > 5 &&
+    typeof cfg.projectId === 'string' &&
+    cfg.projectId.length > 2 &&
+    !cfg.projectId.includes('your-project-id')
   );
 };
 
+export const getFirebaseConnectionDetails = () => {
+  const cfg = getFirebaseConfig();
+  const configured = isFirebaseConfigured();
+  const isCustom = typeof window !== 'undefined' && !!localStorage.getItem('kav_firebase_config');
+  return {
+    isConfigured: configured,
+    projectId: cfg.projectId || null,
+    source: isCustom ? ('custom' as const) : configured ? ('env' as const) : ('none' as const),
+    config: cfg
+  };
+};
+
+export const saveCustomFirebaseConfig = (config: Partial<FirebaseConnectionConfig>) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('kav_firebase_config', JSON.stringify(config));
+    window.location.reload();
+  }
+};
+
+export const clearCustomFirebaseConfig = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('kav_firebase_config');
+    window.location.reload();
+  }
+};
+
 // Initialize Firebase App
+const currentConfig = getFirebaseConfig();
 export const app = isFirebaseConfigured()
-  ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApp())
+  ? (getApps().length === 0 ? initializeApp(currentConfig) : getApp())
   : null;
 
 export const db = app ? getFirestore(app) : null;
 export const auth = app ? getAuth(app) : null;
 
+// Safe client-side analytics initialization
+if (app && typeof window !== 'undefined' && currentConfig.measurementId) {
+  import('firebase/analytics').then(({ getAnalytics, isSupported }) => {
+    isSupported().then((supported) => {
+      if (supported) {
+        getAnalytics(app);
+      }
+    }).catch(() => {});
+  }).catch(() => {});
+}
+
 // ==============================================================================
-// UNIFIED DATA SERVICE (Cloud Firestore + Reactive Local Fallback)
+// UNIFIED DATA SERVICE (Cloud Firestore + Reactive Real-Time & Fallback)
 // ==============================================================================
 
 export const dataService = {
-  // PRODUCTS
+  // PRODUCTS - REAL-TIME SUBSCRIPTION
+  subscribeProducts(callback: (products: Product[]) => void, onError?: (err: any) => void): Unsubscribe {
+    if (isFirebaseConfigured() && db) {
+      try {
+        const q = query(collection(db, 'products'), orderBy('name', 'asc'));
+        const unsubscribe = onSnapshot(
+          q,
+          async (snapshot) => {
+            if (snapshot.empty) {
+              // Auto-seed Firestore from local catalog if cloud database is empty
+              try {
+                const initial = LocalStoreManager.getProducts();
+                for (const prod of initial) {
+                  await setDoc(doc(db, 'products', prod.id), {
+                    ...prod,
+                    created_at: prod.created_at || new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                  }, { merge: true });
+                }
+              } catch (seedErr) {
+                console.error('Error auto-seeding products to Firestore:', seedErr);
+              }
+              return;
+            }
+
+            const list: Product[] = [];
+            snapshot.forEach((d) => {
+              list.push({ id: d.id, ...d.data() } as Product);
+            });
+            callback(list);
+          },
+          (err) => {
+            console.error('Firestore products onSnapshot error:', err);
+            onError?.(err);
+            // Fallback to local on error so UI never breaks
+            callback(LocalStoreManager.getProducts());
+          }
+        );
+        return unsubscribe;
+      } catch (err) {
+        console.error('Error initiating products subscription:', err);
+        onError?.(err);
+      }
+    }
+
+    // Local / Offline fallback with cross-tab and storage events
+    callback(LocalStoreManager.getProducts());
+    const handler = () => {
+      callback(LocalStoreManager.getProducts());
+    };
+    window.addEventListener('kav_products_changed', handler);
+    window.addEventListener('storage', handler);
+    return () => {
+      window.removeEventListener('kav_products_changed', handler);
+      window.removeEventListener('storage', handler);
+    };
+  },
+
   async getProducts(): Promise<Product[]> {
     if (isFirebaseConfigured() && db) {
       try {
         const q = query(collection(db, 'products'), orderBy('name', 'asc'));
         const snap = await getDocs(q);
-        const list: Product[] = [];
-        snap.forEach(d => {
-          list.push({ id: d.id, ...d.data() } as Product);
-        });
-        return list;
+        if (!snap.empty) {
+          const list: Product[] = [];
+          snap.forEach(d => {
+            list.push({ id: d.id, ...d.data() } as Product);
+          });
+          return list;
+        }
       } catch (err) {
         console.error('Firestore getProducts error:', err);
-        throw err;
       }
     }
     return LocalStoreManager.getProducts();
@@ -63,10 +186,15 @@ export const dataService = {
 
   async getProductById(id: string): Promise<Product | null> {
     if (isFirebaseConfigured() && db) {
-      const docRef = doc(db, 'products', id);
-      const snap = await getDoc(docRef);
-      if (!snap.exists()) return null;
-      return { id: snap.id, ...snap.data() } as Product;
+      try {
+        const docRef = doc(db, 'products', id);
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          return { id: snap.id, ...snap.data() } as Product;
+        }
+      } catch (err) {
+        console.error('Firestore getProductById error:', err);
+      }
     }
     return LocalStoreManager.getProductById(id) || null;
   },
@@ -93,6 +221,9 @@ export const dataService = {
         featured: !!product.featured,
         nutritional_info: product.nutritional_info || {},
         feeding_guide: product.feeding_guide || '',
+        features: product.features || [],
+        ingredients: product.ingredients || [],
+        packaging_info: product.packaging_info || undefined,
         updated_at: new Date().toISOString(),
       };
 
@@ -101,6 +232,7 @@ export const dataService = {
       }
 
       await setDoc(docRef, payload, { merge: true });
+      LocalStoreManager.saveProduct({ ...payload, id: prodId });
       return { id: prodId, ...payload } as Product;
     }
     return LocalStoreManager.saveProduct(product);
@@ -116,7 +248,9 @@ export const dataService = {
         is_active: newActive,
         updated_at: new Date().toISOString(),
       });
-      return { ...prod, is_active: newActive };
+      const updated = { ...prod, is_active: newActive };
+      LocalStoreManager.saveProduct(updated);
+      return updated;
     }
     return LocalStoreManager.toggleProductActive(id);
   },
@@ -136,17 +270,69 @@ export const dataService = {
     return LocalStoreManager.deleteProduct(id);
   },
 
-  // CATEGORIES
+  // CATEGORIES - REAL-TIME SUBSCRIPTION
+  subscribeCategories(callback: (categories: Category[]) => void, onError?: (err: any) => void): Unsubscribe {
+    if (isFirebaseConfigured() && db) {
+      try {
+        const q = query(collection(db, 'categories'), orderBy('display_order', 'asc'));
+        const unsubscribe = onSnapshot(
+          q,
+          async (snapshot) => {
+            if (snapshot.empty) {
+              try {
+                const initial = LocalStoreManager.getCategories();
+                for (const cat of initial) {
+                  await setDoc(doc(db, 'categories', cat.id), cat, { merge: true });
+                }
+              } catch (seedErr) {
+                console.error('Error auto-seeding categories to Firestore:', seedErr);
+              }
+              return;
+            }
+
+            const list: Category[] = [];
+            snapshot.forEach((d) => {
+              list.push({ id: d.id, ...d.data() } as Category);
+            });
+            callback(list);
+          },
+          (err) => {
+            console.error('Firestore categories onSnapshot error:', err);
+            onError?.(err);
+            callback(LocalStoreManager.getCategories());
+          }
+        );
+        return unsubscribe;
+      } catch (err) {
+        console.error('Error subscribing to categories:', err);
+        onError?.(err);
+      }
+    }
+
+    callback(LocalStoreManager.getCategories());
+    const handler = () => {
+      callback(LocalStoreManager.getCategories());
+    };
+    window.addEventListener('kav_categories_changed', handler);
+    window.addEventListener('storage', handler);
+    return () => {
+      window.removeEventListener('kav_categories_changed', handler);
+      window.removeEventListener('storage', handler);
+    };
+  },
+
   async getCategories(): Promise<Category[]> {
     if (isFirebaseConfigured() && db) {
       try {
         const q = query(collection(db, 'categories'), orderBy('display_order', 'asc'));
         const snap = await getDocs(q);
-        const list: Category[] = [];
-        snap.forEach(d => {
-          list.push({ id: d.id, ...d.data() } as Category);
-        });
-        return list;
+        if (!snap.empty) {
+          const list: Category[] = [];
+          snap.forEach(d => {
+            list.push({ id: d.id, ...d.data() } as Category);
+          });
+          return list;
+        }
       } catch (err) {
         console.error('Firestore getCategories error:', err);
       }
@@ -154,7 +340,58 @@ export const dataService = {
     return LocalStoreManager.getCategories();
   },
 
-  // STORE SETTINGS
+  // STORE SETTINGS - REAL-TIME SUBSCRIPTION
+  subscribeSettings(callback: (settings: StoreSettings) => void, onError?: (err: any) => void): Unsubscribe {
+    if (isFirebaseConfigured() && db) {
+      try {
+        const docRef = doc(db, 'store_settings', 'default');
+        const unsubscribe = onSnapshot(
+          docRef,
+          async (snapshot) => {
+            if (!snapshot.exists()) {
+              try {
+                const initial = LocalStoreManager.getSettings();
+                await setDoc(docRef, initial, { merge: true });
+              } catch (seedErr) {
+                console.error('Error auto-seeding settings to Firestore:', seedErr);
+              }
+              return;
+            }
+
+            const data = snapshot.data() as StoreSettings;
+            if (!data.logo_url) {
+              data.logo_url = '/images/krishna-agrovet-logo.png';
+            }
+            if (!data.hero_banners || data.hero_banners.length === 0) {
+              data.hero_banners = [data.hero_banner_url || '/images/banners/radhe-krishna-banner.jpg'];
+            }
+            callback(data);
+          },
+          (err) => {
+            console.error('Firestore settings onSnapshot error:', err);
+            onError?.(err);
+            callback(LocalStoreManager.getSettings());
+          }
+        );
+        return unsubscribe;
+      } catch (err) {
+        console.error('Error subscribing to settings:', err);
+        onError?.(err);
+      }
+    }
+
+    callback(LocalStoreManager.getSettings());
+    const handler = () => {
+      callback(LocalStoreManager.getSettings());
+    };
+    window.addEventListener('kav_settings_changed', handler);
+    window.addEventListener('storage', handler);
+    return () => {
+      window.removeEventListener('kav_settings_changed', handler);
+      window.removeEventListener('storage', handler);
+    };
+  },
+
   async getSettings(): Promise<StoreSettings> {
     if (isFirebaseConfigured() && db) {
       try {
@@ -164,6 +401,9 @@ export const dataService = {
           const data = snap.data() as StoreSettings;
           if (!data.logo_url) {
             data.logo_url = '/images/krishna-agrovet-logo.png';
+          }
+          if (!data.hero_banners || data.hero_banners.length === 0) {
+            data.hero_banners = [data.hero_banner_url || '/images/banners/radhe-krishna-banner.jpg'];
           }
           return data;
         }
@@ -180,304 +420,10 @@ export const dataService = {
       const current = await this.getSettings();
       const updated = { ...current, ...settings, updated_at: new Date().toISOString() };
       await setDoc(docRef, updated, { merge: true });
+      LocalStoreManager.updateSettings(settings);
       return updated;
     }
     return LocalStoreManager.updateSettings(settings);
-  },
-
-  // ORDERS & ATOMIC CONCURRENCY-SAFE TRANSACTION
-  async placeOrderAtomic(
-    customerData: CheckoutCustomerData,
-    items: { product_id: string; quantity: number }[],
-    idempotencyKey?: string
-  ): Promise<AtomicOrderResult> {
-    if (isFirebaseConfigured() && db) {
-      try {
-        return await runTransaction(db, async (transaction) => {
-          // 1. Idempotency Check
-          if (idempotencyKey) {
-            const q = query(collection(db, 'orders'), where('idempotency_key', '==', idempotencyKey), limit(1));
-            const existingSnap = await getDocs(q);
-            if (!existingSnap.empty) {
-              const existing = existingSnap.docs[0].data() as Order;
-              return {
-                success: true,
-                order_id: existingSnap.docs[0].id,
-                order_number: existing.order_number,
-                total_bags: existing.total_bags,
-                subtotal_amount: existing.subtotal_amount,
-                delivery_fee: existing.delivery_fee,
-                total_amount: existing.total_amount,
-                status: existing.status,
-                message: 'Existing order returned via idempotency key.',
-              };
-            }
-          }
-
-          // 2. Fetch Store Settings for Delivery thresholds
-          const settingsRef = doc(db, 'store_settings', 'default');
-          const settingsSnap = await transaction.get(settingsRef);
-          const settingsData: StoreSettings = settingsSnap.exists() 
-            ? (settingsSnap.data() as StoreSettings)
-            : LocalStoreManager.getSettings();
-
-          // 3. Read and lock all product documents inside the transaction
-          const productDocs: { ref: any; data: Product; requestedQty: number }[] = [];
-          let subtotal = 0;
-          let totalBags = 0;
-
-          for (const item of items) {
-            const pRef = doc(db, 'products', item.product_id);
-            const pSnap = await transaction.get(pRef);
-
-            if (!pSnap.exists()) {
-              throw new Error(`Feed product ID "${item.product_id}" does not exist.`);
-            }
-
-            const pData = { id: pSnap.id, ...pSnap.data() } as Product;
-
-            if (!pData.is_active) {
-              throw new Error(`Product "${pData.name}" is currently inactive.`);
-            }
-
-            if (pData.available_stock < item.quantity) {
-              throw new Error(
-                `Insufficient stock for "${pData.name}". Available: ${pData.available_stock} bags, Requested: ${item.quantity} bags.`
-              );
-            }
-
-            subtotal += pData.price * item.quantity;
-            totalBags += item.quantity;
-            productDocs.push({ ref: pRef, data: pData, requestedQty: item.quantity });
-          }
-
-          // 4. Calculate Delivery Fee
-          const threshold = settingsData.free_delivery_threshold_bags || 5;
-          const feePerBag = settingsData.delivery_fee_per_bag || 30;
-          const deliveryFee = totalBags >= threshold ? 0 : totalBags * feePerBag;
-          const totalAmount = subtotal + deliveryFee;
-
-          // 5. Generate unique order number
-          const orderNumber = generateMockOrderNumber();
-          const newOrderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-          const orderRef = doc(db, 'orders', newOrderId);
-
-          // 6. Deduct stock and prepare immutable items snapshot
-          const orderItems = productDocs.map(({ ref, data, requestedQty }) => {
-            const newStock = data.available_stock - requestedQty;
-            transaction.update(ref, {
-              available_stock: newStock,
-              updated_at: new Date().toISOString(),
-            });
-
-            // Write movement audit doc
-            const movRef = doc(collection(db, 'inventory_movements'));
-            transaction.set(movRef, {
-              product_id: data.id,
-              product_name: data.name,
-              change_quantity: -requestedQty,
-              previous_stock: data.available_stock,
-              new_stock: newStock,
-              reason: 'order_placed',
-              order_id: newOrderId,
-              notes: `Customer order ${orderNumber}`,
-              created_at: new Date().toISOString(),
-            });
-
-            return {
-              id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-              order_id: newOrderId,
-              product_id: data.id,
-              product_name: data.name,
-              brand: data.brand,
-              bag_weight_kg: data.bag_weight_kg,
-              unit_price: data.price,
-              quantity: requestedQty,
-              line_total: data.price * requestedQty,
-            };
-          });
-
-          // 7. Write Order Document
-          const orderDocPayload: Order = {
-            id: newOrderId,
-            order_number: orderNumber,
-            customer_name: customerData.customer_name.trim(),
-            customer_phone: customerData.customer_phone.trim(),
-            village_town: customerData.village_town.trim(),
-            full_address: customerData.full_address.trim(),
-            landmark: customerData.landmark?.trim() || '',
-            pincode: customerData.pincode.trim(),
-            district: customerData.district || 'Alwar',
-            state: customerData.state || 'Rajasthan',
-            delivery_notes: customerData.delivery_notes?.trim() || '',
-            landmark_photo_url: customerData.landmark_photo_url || '',
-            total_bags: totalBags,
-            subtotal_amount: subtotal,
-            delivery_fee: deliveryFee,
-            total_amount: totalAmount,
-            payment_method: customerData.payment_method || 'cash_on_delivery',
-            status: 'pending',
-            idempotency_key: idempotencyKey || '',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            items: orderItems,
-          };
-
-          transaction.set(orderRef, orderDocPayload);
-
-          return {
-            success: true,
-            order_id: newOrderId,
-            order_number: orderNumber,
-            total_bags: totalBags,
-            subtotal_amount: subtotal,
-            delivery_fee: deliveryFee,
-            total_amount: totalAmount,
-            status: 'pending',
-            message: 'Order created atomically in Firestore and stock deducted.',
-          };
-        });
-      } catch (err: any) {
-        console.error('Firestore placeOrderAtomic error:', err);
-        throw new Error(err.message || 'Failed to place order in Firestore.');
-      }
-    }
-
-    return LocalStoreManager.placeOrderAtomic(customerData, items, idempotencyKey);
-  },
-
-  async getOrders(): Promise<Order[]> {
-    if (isFirebaseConfigured() && db) {
-      try {
-        const q = query(collection(db, 'orders'), orderBy('created_at', 'desc'));
-        const snap = await getDocs(q);
-        const list: Order[] = [];
-        snap.forEach(d => {
-          list.push({ id: d.id, ...d.data() } as Order);
-        });
-        return list;
-      } catch (err) {
-        console.error('Firestore getOrders error:', err);
-      }
-    }
-    return LocalStoreManager.getOrders();
-  },
-
-  async getOrderByNumber(orderNumber: string): Promise<Order | null> {
-    if (isFirebaseConfigured() && db) {
-      try {
-        const q = query(
-          collection(db, 'orders'),
-          where('order_number', '==', orderNumber.trim().toUpperCase()),
-          limit(1)
-        );
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-          const d = snap.docs[0];
-          return { id: d.id, ...d.data() } as Order;
-        }
-      } catch (err) {
-        console.error('Firestore getOrderByNumber error:', err);
-      }
-      return null;
-    }
-    return LocalStoreManager.getOrderByNumber(orderNumber) || null;
-  },
-
-  async getOrderById(orderId: string): Promise<Order | null> {
-    if (isFirebaseConfigured() && db) {
-      const docRef = doc(db, 'orders', orderId);
-      const snap = await getDoc(docRef);
-      if (!snap.exists()) return null;
-      return { id: snap.id, ...snap.data() } as Order;
-    }
-    return LocalStoreManager.getOrderById(orderId) || null;
-  },
-
-  async updateOrderStatus(orderId: string, status: OrderStatus, notes?: string): Promise<Order> {
-    if (isFirebaseConfigured() && db) {
-      if (status === 'cancelled') {
-        // Atomic cancellation with stock restore
-        return await runTransaction(db, async (transaction) => {
-          const oRef = doc(db, 'orders', orderId);
-          const oSnap = await transaction.get(oRef);
-          if (!oSnap.exists()) throw new Error('Order not found');
-
-          const orderData = oSnap.data() as Order;
-          if (orderData.status === 'cancelled') {
-            return orderData; // Already cancelled
-          }
-
-          // Restore stock for each item
-          if (orderData.items && orderData.items.length > 0) {
-            for (const item of orderData.items) {
-              if (!item.product_id) continue;
-              const pRef = doc(db, 'products', item.product_id);
-              const pSnap = await transaction.get(pRef);
-              if (pSnap.exists()) {
-                const currentStock = pSnap.data().available_stock || 0;
-                const restoredStock = currentStock + item.quantity;
-                transaction.update(pRef, {
-                  available_stock: restoredStock,
-                  updated_at: new Date().toISOString(),
-                });
-
-                const movRef = doc(collection(db, 'inventory_movements'));
-                transaction.set(movRef, {
-                  product_id: item.product_id,
-                  product_name: item.product_name,
-                  change_quantity: item.quantity,
-                  previous_stock: currentStock,
-                  new_stock: restoredStock,
-                  reason: 'order_cancelled',
-                  order_id: orderId,
-                  notes: `Restored stock on cancellation: ${notes || 'Admin cancelled'}`,
-                  created_at: new Date().toISOString(),
-                });
-              }
-            }
-          }
-
-          const updatedNotes = `${orderData.internal_notes ? orderData.internal_notes + '\n' : ''}[Cancelled ${new Date().toLocaleDateString('en-IN')}] ${notes || 'Status updated to cancelled'}`;
-          transaction.update(oRef, {
-            status: 'cancelled',
-            internal_notes: updatedNotes,
-            updated_at: new Date().toISOString(),
-          });
-
-          return {
-            ...orderData,
-            status: 'cancelled',
-            internal_notes: updatedNotes,
-            updated_at: new Date().toISOString(),
-          };
-        });
-      } else {
-        const oRef = doc(db, 'orders', orderId);
-        const orderSnap = await getDoc(oRef);
-        if (!orderSnap.exists()) throw new Error('Order not found');
-        const orderData = orderSnap.data() as Order;
-
-        const updatedNotes = notes
-          ? `${orderData.internal_notes ? orderData.internal_notes + '\n' : ''}[${new Date().toLocaleDateString('en-IN')}] ${notes}`
-          : orderData.internal_notes;
-
-        await updateDoc(oRef, {
-          status,
-          internal_notes: updatedNotes,
-          updated_at: new Date().toISOString(),
-        });
-
-        return {
-          ...orderData,
-          status,
-          internal_notes: updatedNotes,
-          updated_at: new Date().toISOString(),
-        };
-      }
-    }
-
-    return LocalStoreManager.updateOrderStatus(orderId, status, notes);
   },
 
   // INVENTORY ADJUSTMENT & AUDIT LOGS
@@ -491,7 +437,7 @@ export const dataService = {
       return await runTransaction(db, async (transaction) => {
         const pRef = doc(db, 'products', productId);
         const pSnap = await transaction.get(pRef);
-        if (!pSnap.exists()) throw new Error('Product not found');
+        if (!pSnap.exists()) throw new Error('Product not found in Firestore');
 
         const currentStock = pSnap.data().available_stock || 0;
         const newStock = currentStock + changeQuantity;
@@ -516,11 +462,42 @@ export const dataService = {
           created_at: new Date().toISOString(),
         });
 
-        return { id: pSnap.id, ...pSnap.data(), available_stock: newStock } as Product;
+        const updated = { id: pSnap.id, ...pSnap.data(), available_stock: newStock } as Product;
+        LocalStoreManager.saveProduct(updated);
+        return updated;
       });
     }
 
     return LocalStoreManager.adjustInventory(productId, changeQuantity, reason, notes);
+  },
+
+  subscribeInventoryMovements(callback: (movements: InventoryMovement[]) => void): Unsubscribe {
+    if (isFirebaseConfigured() && db) {
+      try {
+        const q = query(collection(db, 'inventory_movements'), orderBy('created_at', 'desc'), limit(100));
+        return onSnapshot(q, (snap) => {
+          const list: InventoryMovement[] = [];
+          snap.forEach(d => {
+            list.push({ id: d.id, ...d.data() } as InventoryMovement);
+          });
+          callback(list);
+        }, (err) => {
+          console.error('Inventory movements onSnapshot error:', err);
+          callback(LocalStoreManager.getInventoryMovements());
+        });
+      } catch (err) {
+        console.error('Error subscribing to inventory movements:', err);
+      }
+    }
+
+    callback(LocalStoreManager.getInventoryMovements());
+    const handler = () => {
+      callback(LocalStoreManager.getInventoryMovements());
+    };
+    window.addEventListener('storage', handler);
+    return () => {
+      window.removeEventListener('storage', handler);
+    };
   },
 
   async getInventoryMovements(): Promise<InventoryMovement[]> {
@@ -539,4 +516,284 @@ export const dataService = {
     }
     return LocalStoreManager.getInventoryMovements();
   },
+
+  // ORDERS
+  async placeOrderAtomic(
+    customerData: CheckoutCustomerData,
+    items: { product_id: string; quantity: number }[],
+    idempotencyKey?: string
+  ): Promise<AtomicOrderResult> {
+    if (isFirebaseConfigured() && db) {
+      try {
+        const productsSnap = await getDocs(collection(db, 'products'));
+        const products: Product[] = [];
+        productsSnap.forEach(d => products.push({ id: d.id, ...d.data() } as Product));
+
+        const settingsSnap = await getDoc(doc(db, 'store_settings', 'default'));
+        const settings: StoreSettings = settingsSnap.exists()
+          ? (settingsSnap.data() as StoreSettings)
+          : LocalStoreManager.getSettings();
+
+        // Idempotency check
+        if (idempotencyKey) {
+          const qIdemp = query(collection(db, 'orders'), where('idempotency_key', '==', idempotencyKey), limit(1));
+          const idempSnap = await getDocs(qIdemp);
+          if (!idempSnap.empty) {
+            const existing = idempSnap.docs[0].data() as Order;
+            return {
+              success: true,
+              order_id: idempSnap.docs[0].id,
+              order_number: existing.order_number,
+              total_bags: existing.total_bags,
+              subtotal_amount: existing.subtotal_amount,
+              delivery_fee: existing.delivery_fee,
+              total_amount: existing.total_amount,
+              status: existing.status,
+              message: 'Existing order returned via idempotency key.',
+            };
+          }
+        }
+
+        if (!items || items.length === 0) {
+          throw new Error('Order items cannot be empty.');
+        }
+
+        let totalBags = 0;
+        let subtotalAmount = 0;
+        const orderItems: any[] = [];
+
+        for (const item of items) {
+          const prod = products.find(p => p.id === item.product_id);
+          if (!prod) throw new Error(`Product not found: ${item.product_id}`);
+          if (!prod.is_active) throw new Error(`Product "${prod.name}" is discontinued.`);
+          if (prod.available_stock < item.quantity) {
+            throw new Error(`Insufficient stock for "${prod.name}". Available: ${prod.available_stock} bags, Requested: ${item.quantity} bags.`);
+          }
+          totalBags += item.quantity;
+          subtotalAmount += prod.price * item.quantity;
+          orderItems.push({
+            id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+            order_id: '',
+            product_id: prod.id,
+            product_name: prod.name,
+            product_code: prod.sku || '',
+            category_name: prod.category_id,
+            bag_weight_kg: prod.bag_weight_kg || 50,
+            quantity: item.quantity,
+            price_per_bag: prod.price,
+            total_price: prod.price * item.quantity,
+          });
+        }
+
+        const deliveryFee = totalBags < settings.free_delivery_threshold_bags
+          ? totalBags * settings.delivery_fee_per_bag
+          : 0;
+        const totalAmount = subtotalAmount + deliveryFee;
+        const newOrderId = `ord-${Date.now()}`;
+        const newOrderNumber = generateMockOrderNumber();
+
+        orderItems.forEach(it => { it.order_id = newOrderId; });
+
+        const newOrder: Order = {
+          id: newOrderId,
+          order_number: newOrderNumber,
+          customer_name: customerData.customer_name.trim(),
+          customer_phone: customerData.customer_phone.trim(),
+          village_town: customerData.village_town.trim(),
+          full_address: customerData.full_address.trim(),
+          landmark: customerData.landmark?.trim(),
+          pincode: customerData.pincode.trim(),
+          district: customerData.district || 'Alwar',
+          state: customerData.state || 'Rajasthan',
+          delivery_notes: customerData.delivery_notes?.trim(),
+          landmark_photo_url: customerData.landmark_photo_url || '',
+          total_bags: totalBags,
+          subtotal_amount: subtotalAmount,
+          delivery_fee: deliveryFee,
+          total_amount: totalAmount,
+          payment_method: customerData.payment_method || 'cash_on_delivery',
+          status: 'pending',
+          idempotency_key: idempotencyKey,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          items: orderItems,
+        };
+
+        await setDoc(doc(db, 'orders', newOrderId), newOrder);
+
+        // Deduct inventory in Firestore
+        for (const item of items) {
+          const prod = products.find(p => p.id === item.product_id)!;
+          const newStock = Math.max(0, prod.available_stock - item.quantity);
+          await updateDoc(doc(db, 'products', prod.id), {
+            available_stock: newStock,
+            updated_at: new Date().toISOString(),
+          });
+
+          const movId = `mov-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+          await setDoc(doc(db, 'inventory_movements', movId), {
+            id: movId,
+            product_id: prod.id,
+            product_name: prod.name,
+            change_quantity: -item.quantity,
+            previous_stock: prod.available_stock,
+            new_stock: newStock,
+            reason: 'order_sale',
+            order_id: newOrderId,
+            notes: `Reserved for order ${newOrderNumber}`,
+            created_at: new Date().toISOString(),
+          });
+        }
+
+        LocalStoreManager.placeOrderAtomic(customerData, items, idempotencyKey);
+
+        return {
+          success: true,
+          order_id: newOrderId,
+          order_number: newOrderNumber,
+          total_bags: totalBags,
+          subtotal_amount: subtotalAmount,
+          delivery_fee: deliveryFee,
+          total_amount: totalAmount,
+          status: 'pending',
+          message: 'Order created and stock reserved successfully in Firestore.',
+        };
+      } catch (err) {
+        console.error('Firestore placeOrderAtomic fallback:', err);
+        return LocalStoreManager.placeOrderAtomic(customerData, items, idempotencyKey);
+      }
+    }
+
+    return LocalStoreManager.placeOrderAtomic(customerData, items, idempotencyKey);
+  },
+
+  async getOrders(): Promise<Order[]> {
+    if (isFirebaseConfigured() && db) {
+      try {
+        const q = query(collection(db, 'orders'), orderBy('created_at', 'desc'), limit(100));
+        const snap = await getDocs(q);
+        const list: Order[] = [];
+        snap.forEach(d => {
+          list.push({ id: d.id, ...d.data() } as Order);
+        });
+        return list;
+      } catch (err) {
+        console.error('Firestore getOrders error:', err);
+      }
+    }
+    return LocalStoreManager.getOrders();
+  },
+
+  async getOrderByNumber(orderNumber: string): Promise<Order | undefined> {
+    if (isFirebaseConfigured() && db) {
+      try {
+        const q = query(collection(db, 'orders'), where('order_number', '==', orderNumber), limit(1));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          return { id: snap.docs[0].id, ...snap.docs[0].data() } as Order;
+        }
+      } catch (err) {
+        console.error('Firestore getOrderByNumber error:', err);
+      }
+    }
+    return LocalStoreManager.getOrderByNumber(orderNumber);
+  },
+
+  async updateOrderStatus(orderId: string, status: OrderStatus, notes?: string): Promise<Order> {
+    if (isFirebaseConfigured() && db) {
+      try {
+        const orderRef = doc(db, 'orders', orderId);
+        const snap = await getDoc(orderRef);
+        if (snap.exists()) {
+          const current = snap.data() as Order;
+          const updateData: Partial<Order> = {
+            status,
+            updated_at: new Date().toISOString(),
+          };
+          if (notes) {
+            updateData.internal_notes = `${current.internal_notes ? current.internal_notes + '\n' : ''}[${new Date().toLocaleDateString('en-IN')}] ${notes}`;
+          }
+          await updateDoc(orderRef, updateData);
+          LocalStoreManager.updateOrderStatus(orderId, status, notes);
+          return { ...current, ...updateData };
+        }
+      } catch (err) {
+        console.error('Firestore updateOrderStatus error:', err);
+      }
+    }
+    return LocalStoreManager.updateOrderStatus(orderId, status, notes);
+  },
+
+  // ONE-CLICK SYNC ALL DATA TO CLOUD FIRESTORE
+  async syncAllToFirestore(): Promise<{ productsCount: number; categoriesCount: number; settingsSynced: boolean }> {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase is not yet configured with valid Project ID and API Key.');
+    }
+
+    const currentProds = LocalStoreManager.getProducts();
+    const currentCats = LocalStoreManager.getCategories();
+    const currentSettings = LocalStoreManager.getSettings();
+
+    // 1. Sync Settings
+    await setDoc(doc(db, 'store_settings', 'default'), {
+      ...currentSettings,
+      updated_at: new Date().toISOString(),
+    }, { merge: true });
+
+    // 2. Sync Categories
+    for (const cat of currentCats) {
+      await setDoc(doc(db, 'categories', cat.id), cat, { merge: true });
+    }
+
+    // 3. Sync Products
+    for (const prod of currentProds) {
+      await setDoc(doc(db, 'products', prod.id), {
+        ...prod,
+        updated_at: new Date().toISOString(),
+      }, { merge: true });
+    }
+
+    return {
+      productsCount: currentProds.length,
+      categoriesCount: currentCats.length,
+      settingsSynced: true,
+    };
+  },
+
+  // TEST FIRESTORE CONNECTION
+  async testFirestoreConnection(): Promise<{ success: boolean; message: string; projectId: string | null }> {
+    if (!isFirebaseConfigured() || !db) {
+      return {
+        success: false,
+        message: 'Firebase configuration is incomplete. Please provide API Key and Project ID.',
+        projectId: null,
+      };
+    }
+
+    try {
+      // Test read/write to _ping doc
+      const pingDoc = doc(db, '_connection_test', 'status');
+      await setDoc(pingDoc, {
+        timestamp: new Date().toISOString(),
+        client: 'Krishna Agrovet Web App',
+      }, { merge: true });
+
+      const snap = await getDoc(pingDoc);
+      if (snap.exists()) {
+        const cfg = getFirebaseConfig();
+        return {
+          success: true,
+          message: `Successfully connected to Cloud Firestore (Project: ${cfg.projectId})! Real-time streaming is active.`,
+          projectId: cfg.projectId,
+        };
+      }
+      throw new Error('Could not read test document back from Firestore.');
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message || 'Failed to connect to Cloud Firestore. Check security rules or project permissions.',
+        projectId: getFirebaseConfig().projectId || null,
+      };
+    }
+  }
 };

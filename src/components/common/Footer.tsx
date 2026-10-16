@@ -35,7 +35,7 @@ export const Footer: React.FC = () => {
                 <img
                   src="/images/radhe-krishna-transparent-wordmark.png"
                   alt="राधे कृष्णा पशु आहार"
-                  className="h-12 w-auto object-contain filter brightness-105 drop-shadow-sm shrink-0"
+                  className="h-9 sm:h-12 w-auto max-w-[130px] sm:max-w-none object-contain filter brightness-105 drop-shadow-sm shrink-0"
                 />
                 <div className="flex flex-col">
                   <span className="text-xs font-black text-white uppercase tracking-wider font-heading">
@@ -153,11 +153,11 @@ export const Footer: React.FC = () => {
             <a href="/#products" className="hover:text-stone-400 transition-colors">
               {t('navProducts')}
             </a>
-            <a href="/#why-us" className="hover:text-stone-400 transition-colors">
-              {t('navBenefits')}
+            <a href="/#about" className="hover:text-stone-400 transition-colors">
+              {t('navAbout')}
             </a>
-            <a href="/#delivery" className="hover:text-stone-400 transition-colors">
-              {t('navDelivery')}
+            <a href="/#faq" className="hover:text-stone-400 transition-colors">
+              {lang === 'hi' ? 'अक्सर पूछे सवाल (FAQ)' : 'FAQ'}
             </a>
             <Link to="/admin/login" className="hover:text-stone-400 transition-colors text-[11px]">
               {t('navAdmin')}

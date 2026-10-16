@@ -1,13 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Product } from '../../types';
 import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
-import { useAuth } from '../../context/AuthContext';
-import { X, ShoppingBag, Plus, Minus, Check, Truck, MessageCircle, Scale, Camera, Loader2, AlertCircle } from 'lucide-react';
+import { X, ShoppingBag, Plus, Minus, Check, MessageCircle, Scale } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { normalizeWhatsAppNumber } from '../../lib/whatsapp';
-import { compressDeviceImage } from '../../lib/imageCompression';
-import { dataService } from '../../lib/firebase';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -21,46 +19,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   product, 
   allProducts = [], 
   onSelectProduct, 
-  onProductUpdated,
   onClose 
 }) => {
   const { addItem, items } = useCart();
   const { lang, t } = useLanguage();
   const { settings } = useStoreSettings();
-  const { isAdmin } = useAuth();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [isAdded, setIsAdded] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [uploadingPhoto, setUploadingPhoto] = useState<boolean>(false);
-  const [photoSuccess, setPhotoSuccess] = useState<boolean>(false);
-  const [modalPhotoError, setModalPhotoError] = useState<string | null>(null);
-
-  const handleModalPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !product) return;
-
-    setUploadingPhoto(true);
-    setModalPhotoError(null);
-    try {
-      const res = await compressDeviceImage(file, 900, 0.85);
-      const updatedProduct: Product = {
-        ...product,
-        image_url: res.dataUrl,
-        updated_at: new Date().toISOString()
-      };
-      await dataService.saveProduct(updatedProduct);
-      setPhotoSuccess(true);
-      setTimeout(() => setPhotoSuccess(false), 2500);
-      onProductUpdated?.(updatedProduct);
-    } catch (err: any) {
-      console.error('Error updating modal product photo:', err);
-      setModalPhotoError(err.message || 'Failed to update photo from device');
-    } finally {
-      setUploadingPhoto(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
 
   // Close on Escape key
   useEffect(() => {
@@ -122,6 +88,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     if (result.success) {
       setIsAdded(true);
       setTimeout(() => setIsAdded(false), 2000);
+      try {
+        confetti({
+          particleCount: 32,
+          spread: 65,
+          origin: { y: 0.72 },
+          colors: ['#F5C900', '#B82025', '#079DA5', '#ffffff']
+        });
+      } catch {
+        // ignore
+      }
     } else {
       setErrorMsg(result.message);
     }
@@ -143,14 +119,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/95 hover:bg-warm-cream text-deep-charcoal flex items-center justify-center shadow-md border border-warm-cream-dark transition-colors cursor-pointer"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/95 hover:bg-warm-cream text-deep-charcoal flex items-center justify-center shadow-md border border-warm-cream-dark transition-colors cursor-pointer"
           aria-label="Close product details"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
         {/* Modal Header & Image */}
-        <div className="relative h-64 sm:h-76 bg-gradient-to-b from-warm-cream via-white to-warm-cream p-6 flex items-center justify-center overflow-hidden border-b border-warm-cream-dark">
+        <div className="relative h-52 sm:h-72 md:h-76 bg-gradient-to-b from-warm-cream via-white to-warm-cream p-4 sm:p-6 flex items-center justify-center overflow-hidden border-b border-warm-cream-dark">
           <img
             src={product.image_url}
             alt={product.name}
@@ -158,71 +134,27 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           />
 
           {/* Badges */}
-          <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-            <span className="bg-deep-charcoal text-white text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-xs">
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4 max-w-[calc(100%-48px)] flex flex-wrap gap-1.5 sm:gap-2">
+            <span className="bg-deep-charcoal text-white text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg uppercase tracking-wider shadow-xs">
               {product.brand?.includes('Krishna') ? 'KRISHNA AGROVET' : product.brand}
             </span>
-            <span className="bg-brand-yellow text-deep-charcoal text-xs font-black px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1">
-              <Scale className="w-3.5 h-3.5 text-deep-charcoal" />
+            <span className="bg-brand-yellow text-deep-charcoal text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg shadow-xs flex items-center gap-1">
+              <Scale className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-deep-charcoal" />
               <span>{product.bag_weight_kg || 50} kg Standard Bag</span>
             </span>
           </div>
 
           {/* Packaging Overlay Pill across bottom of image */}
           {product.packaging_info && (
-            <div className="absolute bottom-3 left-4 right-4 bg-stone-900/85 backdrop-blur-xs text-white text-xs sm:text-sm font-black py-1.5 px-3 rounded-xl text-center shadow-md border border-white/20">
+            <div className="absolute bottom-2.5 sm:bottom-3 left-3 right-3 sm:left-4 sm:right-4 bg-stone-900/85 backdrop-blur-xs text-white text-[11px] sm:text-sm font-black py-1 sm:py-1.5 px-2.5 sm:px-3 rounded-lg sm:rounded-xl text-center shadow-md border border-white/20 truncate">
               {product.packaging_info}
             </div>
           )}
 
-          {/* Admin Change Photo Button in Modal */}
-          {isAdmin && (
-            <div className="absolute bottom-4 right-4 z-10">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={handleModalPhotoUpload}
-              />
-              <button
-                type="button"
-                disabled={uploadingPhoto}
-                onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-deep-charcoal/90 hover:bg-krishna-red text-white text-xs font-bold shadow-lg border-2 border-brand-yellow transition-all cursor-pointer hover:scale-105 active:scale-95"
-                title="Change photo from camera/gallery (Owner)"
-              >
-                {uploadingPhoto ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-brand-yellow" />
-                    <span>Compressing & Saving...</span>
-                  </>
-                ) : photoSuccess ? (
-                  <>
-                    <Check className="w-4 h-4 text-brand-yellow" />
-                    <span>Photo Updated!</span>
-                  </>
-                ) : (
-                  <>
-                    <Camera className="w-4 h-4 text-brand-yellow" />
-                    <span>Change Photo from Device</span>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
         </div>
 
-        {modalPhotoError && (
-          <div className="mx-6 mt-3 p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs font-semibold flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-            <span>{modalPhotoError}</span>
-          </div>
-        )}
-
         {/* Modal Body */}
-        <div className="p-6 sm:p-8 space-y-6">
+        <div className="p-4 sm:p-8 space-y-4 sm:space-y-6">
           
           {/* Title & Brand */}
           <div className="space-y-2">
@@ -258,9 +190,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
           {/* Description & Key Features - Checklist Style from authentic product packaging */}
           <div className="space-y-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-charcoal-muted">
-              Description & Key Features
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-black uppercase tracking-wider text-charcoal-muted">
+                Description & Key Features
+              </h3>
+            </div>
             
             {product.features && product.features.length > 0 ? (
               <div className="bg-[#FAF8F5] p-5 sm:p-6 rounded-2xl border border-warm-cream-dark space-y-3.5 shadow-2xs">
@@ -312,18 +246,32 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             </div>
           )}
 
-          {/* Feeding Guide if present */}
-          {product.feeding_guide && (
-            <div className="space-y-1.5 bg-brand-yellow/15 border border-brand-yellow/50 p-4 rounded-2xl">
-              <h3 className="text-xs font-black uppercase tracking-wider text-deep-charcoal flex items-center gap-1.5">
-                <Truck className="w-4 h-4 text-krishna-red" />
-                <span>{t('feedingGuide')}</span>
-              </h3>
-              <p className="text-xs text-deep-charcoal leading-relaxed font-medium">
-                {product.feeding_guide}
-              </p>
+          {/* Key Ingredients if present */}
+          {product.ingredients && product.ingredients.length > 0 && (
+            <div className="space-y-2 bg-[#F6F8F5] border border-emerald-200/80 p-4 rounded-2xl">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
+                  <span className="text-base leading-none">🌾</span>
+                  <span>मुख्य सामग्री (Key Ingredients & Formulation)</span>
+                </h3>
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                  100% Natural & Safe
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {product.ingredients.map((ing, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 bg-white border border-emerald-200 text-emerald-950 font-semibold text-xs px-3 py-1.5 rounded-xl shadow-2xs"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                    <span>{ing}</span>
+                  </span>
+                ))}
+              </div>
             </div>
           )}
+
 
           {/* Error Message */}
           {errorMsg && (
@@ -364,12 +312,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   type="button"
                   onClick={handleAddToCart}
                   disabled={remainingStock <= 0}
-                  className={`flex-1 w-full h-12 flex items-center justify-center gap-2 rounded-xl font-black text-sm shadow-md transition-all active:scale-98 ${
+                  className={`flex-1 w-full h-12 flex items-center justify-center gap-2 rounded-xl font-black text-sm shadow-md transition-all duration-300 cursor-pointer ${
                     isAdded
-                      ? 'bg-emerald-600 text-white'
+                      ? 'bg-emerald-600 text-white animate-cart-bounce shadow-lg'
                       : remainingStock <= 0
                       ? 'bg-warm-cream-dark text-charcoal-muted cursor-not-allowed'
-                      : 'bg-brand-yellow hover:bg-brand-yellow-light text-deep-charcoal border-2 border-brand-yellow-dark'
+                      : 'bg-brand-yellow hover:bg-brand-yellow-light glow-amber-hover text-deep-charcoal border-2 border-brand-yellow-dark'
                   }`}
                 >
                   {isAdded ? (

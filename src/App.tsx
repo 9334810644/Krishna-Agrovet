@@ -17,7 +17,6 @@ import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminProductsPage } from './pages/admin/AdminProductsPage';
 import { AdminInventoryPage } from './pages/admin/AdminInventoryPage';
-import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 
 export const App: React.FC = () => {
@@ -51,7 +50,7 @@ export const App: React.FC = () => {
             <Route index element={<AdminDashboardPage />} />
             <Route path="products" element={<AdminProductsPage />} />
             <Route path="inventory" element={<AdminInventoryPage />} />
-            <Route path="orders" element={<AdminOrdersPage />} />
+            <Route path="orders" element={<Navigate to="/admin" replace />} />
             <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
 

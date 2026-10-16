@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { dataService } from '../../lib/firebase';
-import { Order, Product } from '../../types';
+import { Product, InventoryMovement } from '../../types';
 import { 
-  ShoppingCart, Package, AlertTriangle, CheckCircle, 
-  Clock, ArrowRight, Eye, RefreshCw, Scale 
+  Package, Boxes, AlertTriangle, ArrowRight, 
+  RefreshCw, Scale, History, Plus, Settings, 
+  ArrowUpRight, ArrowDownLeft
 } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [movements, setMovements] = useState<InventoryMovement[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [orderList, prodList] = await Promise.all([
-        dataService.getOrders(),
+      const [prodList, moveList] = await Promise.all([
         dataService.getProducts(),
+        dataService.getInventoryMovements(),
       ]);
-      setOrders(orderList);
       setProducts(prodList);
+      setMovements(moveList);
     } catch (err) {
       console.error('Error loading dashboard metrics:', err);
     } finally {
@@ -29,20 +30,34 @@ export const AdminDashboardPage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadData();
+    setLoading(true);
+    const unsubProducts = dataService.subscribeProducts((prods) => {
+      setProducts(prods);
+      setLoading(false);
+    });
+
+    const unsubMovements = dataService.subscribeInventoryMovements((moves) => {
+      setMovements(moves);
+    });
+
+    return () => {
+      unsubProducts();
+      unsubMovements();
+    };
   }, []);
 
-  // Compute stats
-  const totalOrders = orders.length;
-  const pendingOrders = orders.filter(o => o.status === 'pending').length;
-  const confirmedOrders = orders.filter(o => o.status === 'confirmed').length;
-  const totalProducts = products.filter(p => p.is_active).length;
-  const lowStockProducts = products.filter(
-    p => p.is_active && p.available_stock <= p.low_stock_threshold
-  ).length;
+  // Compute inventory & catalog metrics
+  const activeProducts = products.filter(p => p.is_active);
+  const totalStockBags = activeProducts.reduce((sum, p) => sum + (p.available_stock || 0), 0);
+  const totalStockWeightKg = totalStockBags * 50;
 
-  const totalBagsOrdered = orders
-    .reduce((sum, o) => sum + (o.total_bags || 0), 0);
+  const lowStockProducts = activeProducts.filter(
+    p => p.available_stock > 0 && p.available_stock <= p.low_stock_threshold
+  );
+
+  const outOfStockProducts = activeProducts.filter(
+    p => p.available_stock <= 0
+  );
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
@@ -56,11 +71,18 @@ export const AdminDashboardPage: React.FC = () => {
             </span>
             <span className="text-xs font-bold text-charcoal-muted">Operations Dashboard</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-deep-charcoal font-heading mt-1">
-            Radhe Krishna Pashu Aahar Overview
-          </h1>
+          <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+            <img
+              src="/images/radhe-krishna-transparent-wordmark.png"
+              alt="राधे कृष्णा पशु आहार"
+              className="h-8 sm:h-10 w-auto object-contain filter drop-shadow-xs"
+            />
+            <span className="text-xl sm:text-2xl font-black text-deep-charcoal font-heading">
+              Overview & Mill Balances
+            </span>
+          </div>
           <p className="text-xs sm:text-sm text-charcoal-muted mt-1">
-            Real-time cattle feed orders, customer WhatsApp dispatches, and inventory balances.
+            Real-time cattle feed catalog, packaging, and mill inventory balances.
           </p>
         </div>
 
@@ -76,231 +98,297 @@ export const AdminDashboardPage: React.FC = () => {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Total Orders */}
-        <div className="bg-white p-4 rounded-2xl border-2 border-warm-cream-dark shadow-xs space-y-2">
+        {/* Total Stock in Mill */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-warm-cream-dark shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-charcoal-muted uppercase tracking-wider">Total Orders</span>
-            <div className="w-8 h-8 rounded-lg bg-warm-cream text-krishna-red flex items-center justify-center">
-              <ShoppingCart className="w-4 h-4" />
+            <span className="text-xs font-black text-charcoal-muted uppercase tracking-wider">Total Warehouse Stock</span>
+            <div className="w-9 h-9 rounded-xl bg-warm-cream text-krishna-red flex items-center justify-center border border-warm-cream-dark">
+              <Boxes className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-deep-charcoal font-heading">{totalOrders}</div>
-          <span className="text-[11px] text-charcoal-muted font-medium">All registered orders</span>
-        </div>
-
-        {/* Pending Orders */}
-        <div className="bg-white p-4 rounded-2xl border-2 border-warm-cream-dark shadow-xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-amber-700 uppercase tracking-wider">Pending</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
-              <Clock className="w-4 h-4" />
-            </div>
+          <div className="text-2xl sm:text-3xl font-black text-deep-charcoal font-heading">
+            {totalStockBags} <span className="text-xs font-bold text-charcoal-muted">bags</span>
           </div>
-          <div className="text-2xl font-black text-amber-800 font-heading">{pendingOrders}</div>
-          <span className="text-[11px] text-charcoal-muted font-medium">Needs WhatsApp verify</span>
+          <span className="text-[11px] text-charcoal-muted font-medium block">
+            {totalStockWeightKg.toLocaleString('en-IN')} kg net cattle feed
+          </span>
         </div>
 
-        {/* Confirmed Orders */}
-        <div className="bg-white p-4 rounded-2xl border-2 border-warm-cream-dark shadow-xs space-y-2">
+        {/* Active Product Lines */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-warm-cream-dark shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-emerald-700 uppercase tracking-wider">Confirmed</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <CheckCircle className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-emerald-800 font-heading">{confirmedOrders}</div>
-          <span className="text-[11px] text-charcoal-muted font-medium">Ready for dispatch</span>
-        </div>
-
-        {/* Total Sacks Ordered */}
-        <div className="bg-white p-4 rounded-2xl border-2 border-warm-cream-dark shadow-xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-charcoal-muted uppercase tracking-wider">Total Bags</span>
-            <div className="w-8 h-8 rounded-lg bg-warm-cream text-feed-turquoise-dark flex items-center justify-center">
-              <Scale className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-deep-charcoal font-heading">{totalBagsOrdered}</div>
-          <span className="text-[11px] text-charcoal-muted font-medium">{totalBagsOrdered * 50} kg feed ordered</span>
-        </div>
-
-        {/* Low Stock Warning */}
-        <div className="bg-white p-4 rounded-2xl border-2 border-warm-cream-dark shadow-xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-rose-700 uppercase tracking-wider">Low Stock</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-rose-800 font-heading">{lowStockProducts}</div>
-          <span className="text-[11px] text-charcoal-muted font-medium">At or below threshold</span>
-        </div>
-
-        {/* Total Feed Products */}
-        <div className="bg-white p-4 rounded-2xl border-2 border-warm-cream-dark shadow-xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-charcoal-muted uppercase tracking-wider">Active Lines</span>
-            <div className="w-8 h-8 rounded-lg bg-warm-cream text-krishna-red flex items-center justify-center">
+            <span className="text-xs font-black text-charcoal-muted uppercase tracking-wider">Active Products</span>
+            <div className="w-9 h-9 rounded-xl bg-warm-cream text-feed-turquoise-dark flex items-center justify-center border border-warm-cream-dark">
               <Package className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-deep-charcoal font-heading">{totalProducts}</div>
-          <span className="text-[11px] text-charcoal-muted font-medium">Bypass, Ekstrapro, etc.</span>
+          <div className="text-2xl sm:text-3xl font-black text-deep-charcoal font-heading">
+            {activeProducts.length} <span className="text-xs font-bold text-charcoal-muted">lines</span>
+          </div>
+          <span className="text-[11px] text-charcoal-muted font-medium block">
+            Bypass, Ekstrapro, etc.
+          </span>
+        </div>
+
+        {/* Low Stock Warning */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-warm-cream-dark shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black text-amber-700 uppercase tracking-wider">Low Stock</span>
+            <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-amber-800 font-heading">
+            {lowStockProducts.length} <span className="text-xs font-bold text-charcoal-muted">products</span>
+          </div>
+          <span className="text-[11px] text-charcoal-muted font-medium block">
+            At or below threshold
+          </span>
+        </div>
+
+        {/* Out of Stock Alert */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-warm-cream-dark shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black text-rose-700 uppercase tracking-wider">Out of Stock</span>
+            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-200">
+              <Scale className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-rose-800 font-heading">
+            {outOfStockProducts.length} <span className="text-xs font-bold text-charcoal-muted">products</span>
+          </div>
+          <span className="text-[11px] text-charcoal-muted font-medium block">
+            Needs production replenishment
+          </span>
         </div>
 
       </div>
 
-      {/* Main Grid: Recent Orders & Quick Controls */}
+      {/* Main Grid: Stock Balances & Quick Controls */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        {/* Left Column: Recent Orders Table */}
-        <div className="lg:col-span-8 bg-white rounded-3xl border-2 border-warm-cream-dark shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-warm-cream-dark flex items-center justify-between bg-warm-cream/40">
-            <div>
-              <span className="text-[10px] font-black uppercase text-krishna-red">DISPATCH QUEUE</span>
-              <h2 className="text-base font-black font-heading text-deep-charcoal">
-                Recent Cattle Feed Orders
-              </h2>
-            </div>
-            <Link
-              to="/admin/orders"
-              className="inline-flex items-center gap-1.5 text-xs font-black text-krishna-red hover:underline"
-            >
-              <span>View All Orders</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-warm-cream text-deep-charcoal font-black border-b border-warm-cream-dark uppercase text-[11px]">
-                <tr>
-                  <th className="py-3 px-4">Order #</th>
-                  <th className="py-3 px-4">Customer & Farm</th>
-                  <th className="py-3 px-4">Sacks</th>
-                  <th className="py-3 px-4">Pricing</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-warm-cream-dark bg-white">
-                {orders.slice(0, 6).map((ord) => (
-                  <tr key={ord.id} className="hover:bg-warm-cream/30 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-black text-krishna-red">
-                      {ord.order_number}
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <span className="font-bold text-deep-charcoal block">{ord.customer_name}</span>
-                      <span className="text-charcoal-muted text-[11px] block">{ord.village_town}</span>
-                    </td>
-
-                    <td className="py-3.5 px-4 font-black text-deep-charcoal">
-                      {ord.total_bags} bags ({ord.total_bags * 50} kg)
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <span className="text-[11px] font-bold text-krishna-red bg-krishna-red/10 px-2 py-0.5 rounded-md inline-block">
-                        Rate on WhatsApp
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
-                        ord.status === 'delivered' ? 'bg-emerald-100 text-emerald-800' :
-                        ord.status === 'out_for_delivery' ? 'bg-blue-100 text-blue-800' :
-                        ord.status === 'confirmed' ? 'bg-amber-100 text-amber-800' :
-                        'bg-warm-cream text-deep-charcoal'
-                      }`}>
-                        {ord.status.replace(/_/g, ' ')}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4 text-right">
-                      <Link
-                        to={`/admin/orders?highlight=${ord.id}`}
-                        className="p-1.5 inline-flex text-deep-charcoal hover:text-krishna-red hover:bg-warm-cream rounded-lg transition-colors"
-                        title="View and manage order"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-                {orders.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="py-8 text-center text-charcoal-muted font-bold">
-                      No customer orders recorded yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Right Column: Signature Product Stock & Quick Actions */}
-        <div className="lg:col-span-4 space-y-6">
+        {/* Left Column: Product Stock Balances Table */}
+        <div className="lg:col-span-8 space-y-6">
           
-          {/* Signature Products Stock Card */}
-          <div className="bg-white rounded-3xl border-2 border-warm-cream-dark p-6 shadow-sm space-y-4">
-            <span className="text-[10px] font-black uppercase text-krishna-red tracking-wider block">
-              SIGNATURE FEEDS STOCK
-            </span>
-            <h3 className="text-base font-black font-heading text-deep-charcoal">
-              Core Product Line Balances
-            </h3>
+          <div className="bg-white rounded-3xl border-2 border-warm-cream-dark shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-warm-cream-dark flex items-center justify-between bg-warm-cream/40">
+              <div>
+                <span className="text-[10px] font-black uppercase text-krishna-red">STOCK MONITOR</span>
+                <h2 className="text-base font-black font-heading text-deep-charcoal">
+                  Cattle Feed Product Balances
+                </h2>
+              </div>
+              <Link
+                to="/admin/inventory"
+                className="inline-flex items-center gap-1.5 text-xs font-black text-krishna-red hover:underline"
+              >
+                <span>Full Inventory</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
 
-            <div className="space-y-3">
-              {products.slice(0, 4).map((p) => (
-                <div key={p.id} className="p-3 bg-warm-cream/50 rounded-2xl border border-warm-cream-dark flex items-center justify-between">
-                  <div className="min-w-0 pr-2">
-                    <span className="font-bold text-xs text-deep-charcoal block truncate">{p.name}</span>
-                    <span className="text-[11px] text-charcoal-muted">Standard sack • Rate on WhatsApp</span>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className={`text-xs font-black px-2 py-0.5 rounded ${
-                      p.available_stock <= p.low_stock_threshold ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
-                    }`}>
-                      {p.available_stock} bags
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left text-xs">
+                <thead className="bg-warm-cream text-deep-charcoal font-black border-b border-warm-cream-dark uppercase text-[11px]">
+                  <tr>
+                    <th className="py-3 px-4">Feed Product</th>
+                    <th className="py-3 px-4">Bag Weight</th>
+                    <th className="py-3 px-4">Available Bags</th>
+                    <th className="py-3 px-4">Health Status</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-warm-cream-dark bg-white">
+                  {activeProducts.map((prod) => {
+                    const isOut = prod.available_stock <= 0;
+                    const isLow = !isOut && prod.available_stock <= prod.low_stock_threshold;
+                    return (
+                      <tr key={prod.id} className="hover:bg-warm-cream/30 transition-colors">
+                        <td className="py-3.5 px-4 flex items-center gap-3">
+                          <img
+                            src={prod.image_url}
+                            alt={prod.name}
+                            className="w-10 h-10 rounded-xl object-contain bg-warm-cream p-1 border border-warm-cream-dark shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <span className="font-bold text-deep-charcoal block truncate max-w-xs">
+                              {prod.name}
+                            </span>
+                            <span className="text-[11px] text-charcoal-muted">
+                              SKU: {prod.sku || 'N/A'}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="py-3.5 px-4 font-bold text-krishna-red">
+                          {prod.bag_weight_kg || 50} kg Standard Sack
+                        </td>
+
+                        <td className="py-3.5 px-4 font-black text-deep-charcoal text-sm">
+                          {prod.available_stock} <span className="text-xs font-normal text-charcoal-muted">bags</span>
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          <span className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                            isOut
+                              ? 'bg-rose-100 text-rose-800'
+                              : isLow
+                              ? 'bg-amber-100 text-amber-800 animate-pulse'
+                              : 'bg-emerald-100 text-emerald-800'
+                          }`}>
+                            {isOut ? 'Out of Stock' : isLow ? 'Low Stock' : 'Healthy Stock'}
+                          </span>
+                        </td>
+
+                        <td className="py-3.5 px-4 text-right">
+                          <Link
+                            to="/admin/inventory"
+                            className="p-1.5 inline-flex text-deep-charcoal hover:text-krishna-red hover:bg-warm-cream rounded-lg transition-colors font-bold text-xs"
+                            title="Adjust inventory"
+                          >
+                            Adjust Stock
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {activeProducts.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-charcoal-muted font-bold">
+                        No active cattle feed products found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Recent Stock Audit Trail Preview */}
+          <div className="bg-white rounded-3xl border-2 border-warm-cream-dark shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-warm-cream-dark flex items-center justify-between bg-warm-cream/40">
+              <div className="flex items-center gap-2">
+                <History className="w-4 h-4 text-krishna-red" />
+                <h3 className="text-sm font-black font-heading text-deep-charcoal">
+                  Recent Inventory Adjustments
+                </h3>
+              </div>
+              <Link
+                to="/admin/inventory"
+                className="text-xs font-bold text-krishna-red hover:underline"
+              >
+                View Audit Log
+              </Link>
+            </div>
+
+            <div className="divide-y divide-warm-cream-dark">
+              {movements.slice(0, 4).map((m) => {
+                const isPositive = m.change_quantity > 0;
+                return (
+                  <div key={m.id} className="p-3.5 flex items-center justify-between text-xs hover:bg-warm-cream/20">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black ${
+                        isPositive ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                      }`}>
+                        {isPositive ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
+                      </div>
+                      <div>
+                        <span className="font-bold text-deep-charcoal block">{m.product_name || m.product_id}</span>
+                        <span className="text-[11px] text-charcoal-muted capitalize">
+                          {m.reason.replace(/_/g, ' ')} • {new Date(m.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                        </span>
+                      </div>
+                    </div>
+                    <span className={`font-black text-sm ${isPositive ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      {isPositive ? `+${m.change_quantity}` : m.change_quantity} bags
                     </span>
                   </div>
+                );
+              })}
+              {movements.length === 0 && (
+                <div className="p-6 text-center text-charcoal-muted text-xs font-bold">
+                  No stock adjustments recorded yet.
                 </div>
-              ))}
+              )}
             </div>
-
-            <Link
-              to="/admin/inventory"
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-brand-yellow hover:bg-brand-yellow-light text-deep-charcoal font-black text-xs rounded-xl transition-colors border border-brand-yellow-dark"
-            >
-              <span>Manage Warehouse Stock</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
           </div>
 
+        </div>
+
+        {/* Right Column: Quick Actions & Management */}
+        <div className="lg:col-span-4 space-y-6">
+          
           {/* Quick Shortcuts */}
-          <div className="bg-white rounded-3xl border-2 border-warm-cream-dark p-6 shadow-sm space-y-3">
+          <div className="bg-white rounded-3xl border-2 border-warm-cream-dark p-6 shadow-sm space-y-4">
             <h4 className="text-xs font-black uppercase tracking-wider text-charcoal-muted">
-              Quick Shortcuts
+              Quick Management Shortcuts
             </h4>
 
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="space-y-2.5">
               <Link
                 to="/admin/products"
-                className="p-3 bg-warm-cream hover:bg-warm-cream-dark rounded-xl font-bold text-deep-charcoal text-center border border-warm-cream-dark transition-colors"
+                className="flex items-center justify-between p-3.5 bg-warm-cream hover:bg-warm-cream-dark rounded-2xl font-bold text-xs text-deep-charcoal border border-warm-cream-dark transition-colors"
               >
-                Edit Prices
+                <div className="flex items-center gap-2.5">
+                  <Package className="w-4 h-4 text-krishna-red" />
+                  <span>Manage Products & Photos</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-charcoal-muted" />
               </Link>
+
+              <Link
+                to="/admin/inventory"
+                className="flex items-center justify-between p-3.5 bg-warm-cream hover:bg-warm-cream-dark rounded-2xl font-bold text-xs text-deep-charcoal border border-warm-cream-dark transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Boxes className="w-4 h-4 text-krishna-red" />
+                  <span>Adjust Warehouse Stock</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-charcoal-muted" />
+              </Link>
+
               <Link
                 to="/admin/settings"
-                className="p-3 bg-warm-cream hover:bg-warm-cream-dark rounded-xl font-bold text-deep-charcoal text-center border border-warm-cream-dark transition-colors"
+                className="flex items-center justify-between p-3.5 bg-warm-cream hover:bg-warm-cream-dark rounded-2xl font-bold text-xs text-deep-charcoal border border-warm-cream-dark transition-colors"
               >
-                Store Settings
+                <div className="flex items-center gap-2.5">
+                  <Settings className="w-4 h-4 text-krishna-red" />
+                  <span>Store Contact & WhatsApp</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-charcoal-muted" />
               </Link>
             </div>
           </div>
+
+          {/* Reorder / Low Stock Card */}
+          {lowStockProducts.length > 0 && (
+            <div className="bg-amber-50 rounded-3xl border-2 border-amber-300 p-5 shadow-xs space-y-3">
+              <div className="flex items-center gap-2 text-amber-900 font-black text-xs uppercase tracking-wider">
+                <AlertTriangle className="w-4 h-4 text-amber-700" />
+                <span>Restock Attention Needed</span>
+              </div>
+              <p className="text-xs text-amber-900/80 leading-relaxed font-medium">
+                {lowStockProducts.length} feed product(s) have reached minimum bag threshold in the mill.
+              </p>
+              <div className="space-y-1.5 pt-1">
+                {lowStockProducts.map(p => (
+                  <div key={p.id} className="flex justify-between items-center text-xs font-bold text-amber-950 bg-white/70 px-3 py-2 rounded-xl border border-amber-200">
+                    <span className="truncate pr-2">{p.name}</span>
+                    <span className="shrink-0 text-amber-800">{p.available_stock} bags left</span>
+                  </div>
+                ))}
+              </div>
+              <Link
+                to="/admin/inventory"
+                className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 bg-brand-yellow hover:bg-brand-yellow-light text-deep-charcoal font-black text-xs rounded-xl transition-colors border border-brand-yellow-dark shadow-xs mt-2"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Restock Bags Now</span>
+              </Link>
+            </div>
+          )}
 
         </div>
 

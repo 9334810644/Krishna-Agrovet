@@ -117,7 +117,7 @@ export const Footer: React.FC = () => {
                 className="flex items-center gap-2 text-brand-yellow hover:text-white font-bold transition-colors"
               >
                 <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                <span>{lang === 'hi' ? 'व्हाट्सएप पर संपर्क' : 'WhatsApp Owner Direct'}</span>
+                <span>{lang === 'hi' ? 'व्हाट्सएप ऑफिस संपर्क' : 'WhatsApp Office Direct'}</span>
               </a>
               <a
                 href={`mailto:${settings.support_email}`}

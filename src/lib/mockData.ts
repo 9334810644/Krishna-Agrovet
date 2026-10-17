@@ -3,8 +3,8 @@ import { Product, Category, StoreSettings, Order } from '../types';
 export const INITIAL_STORE_SETTINGS: StoreSettings = {
   business_name: 'Radhe Krishna Pashu Aahar',
   tagline: 'भरोसेमंद पशु आहार, आपके पशुधन के लिए • KRISHNA AGROVET',
-  owner_whatsapp: '919470847471',
-  owner_phone: '+91 94708 47471',
+  owner_whatsapp: '917783811272',
+  owner_phone: '+91 77838 11272',
   support_email: 'krishnaagrovet@gmail.com',
   delivery_areas: 'Ichak, Hazaribagh, Jharkhand & Chandauli (U.P) & Surrounding Gram Panchayats',
   office_address: 'Khasra No. 354/ 1, Patanwa, Industrial area, Ramnagar, Chandauli, ( U. P )',

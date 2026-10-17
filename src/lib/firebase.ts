@@ -585,6 +585,10 @@ export const dataService = {
             if (!data.hero_banners || data.hero_banners.length === 0) {
               data.hero_banners = [data.hero_banner_url || '/images/banners/radhe-krishna-banner.jpg'];
             }
+            if (data.owner_whatsapp === '919470847471' || data.owner_whatsapp === '919876543210' || !data.owner_whatsapp) {
+              data.owner_whatsapp = '917783811272';
+              data.owner_phone = '+91 77838 11272';
+            }
             callback(data);
           },
           (err) => {
@@ -624,6 +628,10 @@ export const dataService = {
           }
           if (!data.hero_banners || data.hero_banners.length === 0) {
             data.hero_banners = [data.hero_banner_url || '/images/banners/radhe-krishna-banner.jpg'];
+          }
+          if (data.owner_whatsapp === '919470847471' || data.owner_whatsapp === '919876543210' || !data.owner_whatsapp) {
+            data.owner_whatsapp = '917783811272';
+            data.owner_phone = '+91 77838 11272';
           }
           return data;
         }

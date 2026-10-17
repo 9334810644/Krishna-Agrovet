@@ -53,7 +53,7 @@ export const BrandStory: React.FC = () => {
               <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-warm-cream-dark shadow-xl bg-warm-cream">
                 <img
                   src="/images/brand-about.jpg"
-                  alt="Farmer with dairy cattle and feed sacks"
+                  alt="Woman dairy farmer with Radhe Krishna cattle feed sack and cows"
                   className="w-full h-64 sm:h-96 object-cover object-center group-hover:scale-104 transition-transform duration-700 ease-out"
                   loading="lazy"
                 />

@@ -2,10 +2,10 @@ import { Order, Product } from '../types';
 
 /**
  * Normalizes phone number into international digits-only format for WhatsApp wa.me link.
- * Example: "+91 94708 47471" or "09470847471" -> "919470847471"
+ * Example: "+91 77838 11272" or "07783811272" -> "917783811272"
  */
 export function normalizeWhatsAppNumber(phone: string): string {
-  if (!phone) return '919470847471';
+  if (!phone) return '917783811272';
   let clean = phone.replace(/\D/g, '');
   if (clean.length === 10) {
     clean = '91' + clean;

@@ -268,9 +268,9 @@ export class LocalStoreManager {
       settings.hero_banners = [settings.hero_banner_url || '/images/banners/radhe-krishna-banner.jpg'];
       changed = true;
     }
-    if (settings.owner_whatsapp === '919876543210' || !settings.owner_whatsapp || settings.owner_whatsapp.includes('98765')) {
-      settings.owner_whatsapp = '919470847471';
-      settings.owner_phone = '+91 94708 47471';
+    if (settings.owner_whatsapp === '919876543210' || !settings.owner_whatsapp || settings.owner_whatsapp.includes('98765') || settings.owner_whatsapp === '919470847471') {
+      settings.owner_whatsapp = '917783811272';
+      settings.owner_phone = '+91 77838 11272';
       changed = true;
     }
     if (settings.support_email !== 'krishnaagrovet@gmail.com') {

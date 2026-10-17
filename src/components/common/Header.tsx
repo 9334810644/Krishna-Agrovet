@@ -179,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart }) => {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-warm-cream-dark px-4 pt-3 pb-6 space-y-3 shadow-xl animate-in slide-in-from-top duration-150">
+        <div className="md:hidden bg-white border-b border-warm-cream-dark px-4 pt-3 pb-5 space-y-3 shadow-xl animate-in slide-in-from-top duration-150">
           <div className="space-y-1">
             <a
               href="/#products"
@@ -187,20 +187,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart }) => {
               className="flex items-center justify-between px-3 py-2.5 rounded-xl text-base font-bold text-deep-charcoal hover:bg-warm-cream hover:text-krishna-red transition-colors"
             >
               <span>{t('navProducts')}</span>
-              <ChevronRight className="w-4 h-4 text-charcoal-muted" />
-            </a>
-
-            <a
-              href={quickWhatsAppUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-base font-bold text-feed-turquoise-dark hover:bg-warm-cream transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-feed-turquoise" />
-                <span>{t('navWhatsApp')}</span>
-              </div>
               <ChevronRight className="w-4 h-4 text-charcoal-muted" />
             </a>
 
@@ -214,53 +200,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart }) => {
             </a>
           </div>
 
-          {/* Mobile Language Switcher Row */}
-          <div className="pt-2 pb-1">
-            <div className="flex items-center justify-between p-2 bg-warm-cream rounded-xl border border-warm-cream-dark">
-              <span className="text-xs font-bold text-charcoal-muted">Language / भाषा:</span>
-              <div className="inline-flex items-center rounded-lg bg-white p-0.5 border border-warm-cream-dark shadow-2xs">
-                <button
-                  type="button"
-                  onClick={() => { setLang('hi'); setMobileMenuOpen(false); }}
-                  className={`px-3 py-1 text-xs rounded-md font-bold transition-all ${
-                    lang === 'hi'
-                      ? 'bg-krishna-red text-white shadow-xs font-black'
-                      : 'text-charcoal-muted hover:text-deep-charcoal'
-                  }`}
-                >
-                  हिन्दी
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setLang('en'); setMobileMenuOpen(false); }}
-                  className={`px-3 py-1 text-xs rounded-md font-bold transition-all ${
-                    lang === 'en'
-                      ? 'bg-krishna-red text-white shadow-xs font-black'
-                      : 'text-charcoal-muted hover:text-deep-charcoal'
-                  }`}
-                >
-                  English
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-warm-cream-dark space-y-2">
+          <div className="pt-2 border-t border-warm-cream-dark">
             <a
               href={`tel:${settings.owner_phone.replace(/\s+/g, '')}`}
-              className="flex items-center gap-2.5 px-3 py-2.5 bg-warm-cream rounded-xl text-deep-charcoal font-bold text-sm"
+              className="flex items-center gap-2.5 px-3 py-2.5 bg-warm-cream rounded-xl text-deep-charcoal hover:text-krishna-red font-bold text-sm transition-colors"
             >
               <Phone className="w-4 h-4 text-krishna-red" />
               <span>{settings.owner_phone}</span>
-            </a>
-            <a
-              href={quickWhatsAppUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2.5 px-3 py-2.5 bg-feed-turquoise/15 text-feed-turquoise-dark rounded-xl font-bold text-sm"
-            >
-              <MessageCircle className="w-4 h-4 text-feed-turquoise" />
-              <span>{t('navWhatsApp')}</span>
             </a>
           </div>
         </div>
